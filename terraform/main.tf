@@ -11,26 +11,33 @@ variable "vm_details" {
 
 resource "virtualbox_vm" "vms" {
   for_each = { for vm in var.vm_details : vm.name => vm }
-  
-  name           = each.value.name
-  cpu            = each.value.cpu
-  memory         = each.value.memory
-  image          = "C:\Users\User\Downloads\CentOS-Stream-9-latest-x86_64-dvd1.iso" # Cambia con il percorso della tua ISO
-  network_adapter {
-    type           = "bridged"
-    bridge         = "enp0s3" # Cambia con il nome corretto della scheda bridge sulla tua macchina
+
+  name   = each.value.hostname
+  cpus   = each.value.cpu
+  memory = each.value.memory
+  image  = "C:/Users/User/Downloads/CentOS-Stream-9-latest-x86_64-dvd1.iso" # Cambia con il percorso corretto della tua ISO
+
+  # Storage Controller
+  storage_controller {
+    name  = "SATA Controller"
+    type  = "sata"
   }
 
   # Disks
   disk {
-    size   = 20480 # 20 GiB
-    type   = "normal"
+    name = "${each.value.name}-disk.vdi"
+    size = 20480 # 20 GiB
+  }
+
+  # Network
+  network_adapter {
+    type           = "Scheda con bridge"
+    bridge_adapter = "Realtek Gaming 2.5GbE Family Controller" # Cambia con il nome corretto della scheda bridge
   }
 }
 
 output "vm_ips" {
   value = {
-    for vm in virtualbox_vm.vms :
-    vm.name => vm.ip_address
+    for vm in virtualbox_vm.vms : vm.name => vm.ipv4_address
   }
 }
