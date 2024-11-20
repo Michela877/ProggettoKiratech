@@ -18,6 +18,8 @@ terraform:
   artifacts:
     paths:
       - ansible/terraform_output.json  # Output che puoi usare per ottenere gli IP delle VM
+  tags:
+    - windows
 
 ansible:
   stage: ansible
@@ -34,6 +36,8 @@ ansible:
     # Eseguire il playbook Ansible sulle VM CentOS 9
     - echo "Esecuzione del playbook Ansible"
     - wsl ansible-playbook -i ansible/inventory ansible/playbook.yml
+  tags:
+    - windows
 
   dependencies:
     - terraform
