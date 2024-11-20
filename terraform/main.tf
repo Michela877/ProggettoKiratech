@@ -15,7 +15,7 @@ resource "virtualbox_vm" "vms" {
   name           = each.value.name
   cpu            = each.value.cpu
   memory         = each.value.memory
-  image          = "/path/to/iso/image.iso" # Cambia con il percorso della tua ISO
+  image          = "C:\Users\User\Downloads\CentOS-Stream-9-latest-x86_64-dvd1.iso" # Cambia con il percorso della tua ISO
   network_adapter {
     type           = "bridged"
     bridge         = "enp0s3" # Cambia con il nome corretto della scheda bridge sulla tua macchina
@@ -23,7 +23,7 @@ resource "virtualbox_vm" "vms" {
 
   # Disks
   disk {
-    size   = 10240 # 10 GiB
+    size   = 20480 # 20 GiB
     type   = "normal"
   }
 }
