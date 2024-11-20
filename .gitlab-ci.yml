@@ -23,7 +23,10 @@ ansible:
   stage: ansible
   script:
     - apt-get install -y ansible
-    - cd ansible/
+    - cd terraform/
+    - terraform output -json > ../ansible/terraform_output.json
+    - cd ../ansible/
+    - python3 generate_inventory.py
     - ansible-playbook -i inventory playbook.yml
   dependencies:
     - terraform
