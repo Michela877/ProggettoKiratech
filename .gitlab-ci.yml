@@ -11,6 +11,9 @@ variables:
 terraform:
   stage: terraform
   script:
+    # Verifica che i file del repository siano correttamente scaricati
+    - echo "Verifica il contenuto del repository"
+    - ls -la  # Mostra i file nella directory corrente per assicurarsi che i file .tf siano presenti
     # Inizializza Terraform e applica le configurazioni per creare le VM
     - echo "Inizializzo Terraform"
     - terraform init
@@ -24,12 +27,12 @@ terraform:
 ansible:
   stage: ansible
   script:
-    # Installare Ansible nel runner
-    - echo "Installazione di Ansible"
+    # Installare Ansible nel runner WSL (se non è già installato)
+    - echo "Installazione di Ansible su WSL"
     - wsl sudo apt-get update
     - wsl sudo apt-get install -y ansible
 
-    # Creare l'inventario con gli IP delle macchine appena create
+    # Creare l'inventario con gli IP delle macchine appena create (assicurati che terraform_output.json contenga gli IP)
     - echo "Creazione dell'inventario Ansible"
     - python3 ansible/generate_inventory.py  # Assicurati che questo script generi un file inventory
 
