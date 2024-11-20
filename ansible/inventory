@@ -1,0 +1,13 @@
+[controller]
+controller.example.com ansible_host=<IP_CONTROLLER>
+
+[master]
+master.example.com ansible_host=<IP_MASTER>
+
+[nodes]
+nodeone.example.com ansible_host=<IP_NODEONE>
+nodetwo.example.com ansible_host=<IP_NODETWO>
+
+[all:vars]
+ansible_user=root
+ansible_ssh_private_key_file=~/.ssh/id_rsa
