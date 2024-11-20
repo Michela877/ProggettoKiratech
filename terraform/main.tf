@@ -1,6 +1,13 @@
 provider "virtualbox" {}
 
 variable "vm_details" {
+  description = "Details of the VMs to create"
+  type = list(object({
+    name     = string
+    hostname = string
+    cpu      = number
+    memory   = number
+  }))
   default = [
     { name = "controller", hostname = "controller.example.com", cpu = 1, memory = 2048 },
     { name = "master", hostname = "master.example.com", cpu = 2, memory = 4096 },
@@ -37,7 +44,6 @@ resource "virtualbox_vm" "vms" {
 }
 
 output "vm_ips" {
-  value = {
-    for vm in virtualbox_vm.vms : vm.name => vm.ipv4_address
-  }
+  description = "IP addresses of the VMs"
+  value = { for vm in virtualbox_vm.vms : vm.name => vm.ipv4_address }
 }
