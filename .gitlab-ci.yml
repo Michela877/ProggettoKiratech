@@ -13,7 +13,7 @@ terraform:
   script:
     # Verifica che i file del repository siano correttamente scaricati
     - echo "Verifica il contenuto del repository"
-    - ls -la  # Mostra i file nella directory corrente per assicurarsi che i file .tf siano presenti
+    - Get-ChildItem -Force  # Usa Get-ChildItem in PowerShell per elencare i file nella directory corrente
     # Inizializza Terraform e applica le configurazioni per creare le VM
     - echo "Inizializzo Terraform"
     - terraform init
