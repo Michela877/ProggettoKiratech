@@ -3,29 +3,23 @@ stages:
   - ansible
 
 variables:
-  TF_ROOT: terraform/
-
-before_script:
-  - apt-get update && apt-get install -y sshpass
+  TF_INPUT: false
+  VBOX_MACHINES_DIR: "C:/VMs"
 
 terraform:
   stage: terraform
   script:
-    - cd $TF_ROOT
     - terraform init
     - terraform apply -auto-approve
   artifacts:
     paths:
-      - $TF_ROOT/terraform.tfstate
-    expire_in: 1 day
+      - ansible/terraform_output.json
 
 ansible:
   stage: ansible
   script:
-    - apt-get install -y ansible
-    - cd terraform/
-    - terraform output -json > ../ansible/terraform_output.json
-    - cd ../ansible/
+    - apt-get update && apt-get install -y ansible python3
+    - cd ansible/
     - python3 generate_inventory.py
     - ansible-playbook -i inventory playbook.yml
   dependencies:
