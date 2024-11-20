@@ -1,0 +1,29 @@
+stages:
+  - terraform
+  - ansible
+
+variables:
+  TF_ROOT: terraform/
+
+before_script:
+  - apt-get update && apt-get install -y sshpass
+
+terraform:
+  stage: terraform
+  script:
+    - cd $TF_ROOT
+    - terraform init
+    - terraform apply -auto-approve
+  artifacts:
+    paths:
+      - $TF_ROOT/terraform.tfstate
+    expire_in: 1 day
+
+ansible:
+  stage: ansible
+  script:
+    - apt-get install -y ansible
+    - cd ansible/
+    - ansible-playbook -i inventory playbook.yml
+  dependencies:
+    - terraform
