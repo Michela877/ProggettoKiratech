@@ -5,22 +5,35 @@ stages:
 variables:
   TF_INPUT: false
   VBOX_MACHINES_DIR: "C:/Users/User/Downloads/CentOS-Stream-9-latest-x86_64-dvd1.iso"
+  ANSIBLE_USER: "your_ssh_user"  # L'utente per SSH (deve essere lo stesso nelle VM)
+  ANSIBLE_SSH_KEY: "C:/path/to/your/private/key"  # Percorso della tua chiave privata per SSH
 
 terraform:
   stage: terraform
   script:
+    # Inizializza Terraform e applica le configurazioni per creare le VM
+    - echo "Inizializzo Terraform"
     - terraform init
     - terraform apply -auto-approve
   artifacts:
     paths:
-      - ansible/terraform_output.json
+      - ansible/terraform_output.json  # Output che puoi usare per ottenere gli IP delle VM
 
 ansible:
   stage: ansible
   script:
-    - apt-get update && apt-get install -y ansible python3
-    - cd ansible/
-    - python3 generate_inventory.py
-    - ansible-playbook -i inventory playbook.yml
+    # Installare Ansible nel runner
+    - echo "Installazione di Ansible"
+    - wsl sudo apt-get update
+    - wsl sudo apt-get install -y ansible
+
+    # Creare l'inventario con gli IP delle macchine appena create
+    - echo "Creazione dell'inventario Ansible"
+    - python3 ansible/generate_inventory.py  # Assicurati che questo script generi un file inventory
+
+    # Eseguire il playbook Ansible sulle VM CentOS 9
+    - echo "Esecuzione del playbook Ansible"
+    - wsl ansible-playbook -i ansible/inventory ansible/playbook.yml
+
   dependencies:
     - terraform
