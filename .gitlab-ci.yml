@@ -4,7 +4,7 @@ stages:
 
 variables:
   TF_INPUT: false
-  VBOX_MACHINES_DIR: "C:/VMs"
+  VBOX_MACHINES_DIR: "C:/Users/User/Downloads/CentOS-Stream-9-latest-x86_64-dvd1.iso"
 
 terraform:
   stage: terraform
