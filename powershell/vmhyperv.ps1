@@ -94,4 +94,18 @@ foreach ($vm in $VMs) {
     Write-Host "Macchina virtuale $VMName creata con successo."
 }
 
+# Avvio di tutte le macchine virtuali create
+Write-Host "Verifica e avvio delle macchine virtuali..."
+foreach ($vm in $VMs) {
+    $VMName = $vm.Name
+    $VMState = (Get-VM -Name $VMName).State
+
+    if ($VMState -eq "Running") {
+        Write-Host "La macchina virtuale '$VMName' è già in esecuzione. Nessuna azione necessaria." -ForegroundColor Green
+    } else {
+        Start-VM -Name $VMName -ErrorAction SilentlyContinue
+        Write-Host "Macchina virtuale '$VMName' avviata con successo." -ForegroundColor Cyan
+    }
+}
+
 Write-Host "Tutte le macchine virtuali sono state verificate/creato con successo."
