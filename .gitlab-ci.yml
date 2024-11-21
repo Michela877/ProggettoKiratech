@@ -1,14 +1,11 @@
 stages:
   - powershell
-  - ansible
 
 variables:
   TF_INPUT: false
-  VBOX_MACHINES_DIR: "C:/Users/User/Downloads/CentOS-Stream-9-latest-x86_64-dvd1.iso"
-  ANSIBLE_USER: "your_ssh_user"  # L'utente per SSH (deve essere lo stesso nelle VM)
-  ANSIBLE_SSH_KEY: "C:/path/to/your/private/key"  # Percorso della tua chiave privata per SSH
   POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_mgXzgi/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso corretto per il tuo script
-
+  VM_SSH_USER: "root"  # L'utente SSH per la VM
+  VM_SSH_HOST: "172.25.115.164"  # L'IP della VM CentOS manager
 
 powershell:
   stage: powershell
@@ -16,25 +13,17 @@ powershell:
     # Esegui lo script PowerShell per creare le VM Hyper-V
     - echo "Esecuzione dello script PowerShell per creare le VM"
     - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
+
+    # Connetti in SSH alla macchina CentOS Manager (controller) e avvia il playbook Ansible
+    - echo "Connessione in SSH alla VM Manager per avviare il playbook Ansible"
+    - |
+      ssh $env:VM_SSH_USER@$env:VM_SSH_HOST << 'EOF'
+      # Vai nella directory dove si trova il playbook Ansible
+      cd 
+
+      # Esegui il playbook Ansible
+      ls
+      EOF
   tags:
     - windows
 
-ansible:
-  stage: ansible
-  script:
-    # Installare Ansible nel runner WSL (se non è già installato)
-    - echo "Installazione di Ansible su WSL"
-    - wsl sudo apt-get update
-    - wsl sudo apt-get install -y ansible
-
-    # Creare l'inventario con gli IP delle macchine appena create (assicurati che terraform_output.json contenga gli IP)
-    - echo "Creazione dell'inventario Ansible"
-    - python3 ansible/generate_inventory.py  # Assicurati che questo script generi un file inventory
-
-    # Eseguire il playbook Ansible sulle VM CentOS 9
-    - echo "Esecuzione del playbook Ansible"
-    - wsl ansible-playbook -i ansible/inventory ansible/playbook.yml
-
-
-  dependencies:
-    - powershell
