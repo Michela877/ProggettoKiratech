@@ -1,5 +1,5 @@
 stages:
-  - terraform
+  - powershell
   - ansible
 
 variables:
@@ -7,24 +7,15 @@ variables:
   VBOX_MACHINES_DIR: "C:/Users/User/Downloads/CentOS-Stream-9-latest-x86_64-dvd1.iso"
   ANSIBLE_USER: "your_ssh_user"  # L'utente per SSH (deve essere lo stesso nelle VM)
   ANSIBLE_SSH_KEY: "C:/path/to/your/private/key"  # Percorso della tua chiave privata per SSH
+  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_mgXzgi/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso corretto per il tuo script
 
-terraform:
-  stage: terraform
+
+powershell:
+  stage: powershell
   script:
-    # Verifica che i file del repository siano correttamente scaricati
-    - echo "Verifica il contenuto del repository"
-    - Get-ChildItem -Force  # Usa Get-ChildItem in PowerShell per elencare i file nella directory corrente
-
-    # Naviga nella directory di Terraform per eseguire i comandi Terraform
-    - cd terraform  # Cambia la directory nella cartella contenente i file di configurazione di Terraform
-
-    # Inizializza Terraform e applica le configurazioni per creare le VM
-    - echo "Inizializzo Terraform"
-    - terraform init
-    - terraform apply -auto-approve
-  artifacts:
-    paths:
-      - ansible/terraform_output.json  # Output che puoi usare per ottenere gli IP delle VM
+    # Esegui lo script PowerShell per creare le VM Hyper-V
+    - echo "Esecuzione dello script PowerShell per creare le VM"
+    - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
   tags:
     - windows
 
@@ -43,8 +34,7 @@ ansible:
     # Eseguire il playbook Ansible sulle VM CentOS 9
     - echo "Esecuzione del playbook Ansible"
     - wsl ansible-playbook -i ansible/inventory ansible/playbook.yml
-  tags:
-    - windows
+
 
   dependencies:
-    - terraform
+    - powershell
