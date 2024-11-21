@@ -53,6 +53,13 @@ foreach ($vm in $VMs) {
     $DiskSize = $vm.DiskSize
     $VHDFile = Join-Path -Path $VHDPath -ChildPath "$VMName.vhdx"
 
+    # Verifica se la macchina virtuale esiste già
+    $existingVM = Get-VM -Name $VMName -ErrorAction SilentlyContinue
+    if ($existingVM) {
+        Write-Host "La macchina virtuale '$VMName' esiste già. Passo alla successiva." -ForegroundColor Yellow
+        continue  # Salta alla macchina virtuale successiva
+    }
+
     Write-Host "Creazione della macchina virtuale: $VMName"
 
     # Crea il disco virtuale
@@ -87,4 +94,4 @@ foreach ($vm in $VMs) {
     Write-Host "Macchina virtuale $VMName creata con successo."
 }
 
-Write-Host "Tutte le macchine virtuali sono state create con successo."
+Write-Host "Tutte le macchine virtuali sono state verificate/creato con successo."
