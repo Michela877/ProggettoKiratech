@@ -3,9 +3,7 @@ stages:
 
 variables:
   TF_INPUT: false
-  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_mgXzgi/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso corretto per il tuo script
-  VM_SSH_USER: "root"  # L'utente SSH per la VM
-  VM_SSH_HOST: "172.25.115.164"  # L'IP della VM CentOS manager
+  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_mgXzgi/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso 
 
 powershell:
   stage: powershell
@@ -13,11 +11,5 @@ powershell:
     # Esegui lo script PowerShell per creare le VM Hyper-V
     - echo "Esecuzione dello script PowerShell per creare le VM"
     - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
-
-    # Connetti in SSH alla macchina CentOS Manager (controller) e avvia il playbook Ansible
-    - echo "Connessione in SSH alla VM Manager per avviare il playbook Ansible"
-    - |
-      # Connessione SSH alla VM CentOS 9 e avvio del playbook Ansible
-      ssh $env:VM_SSH_USER@$env:VM_SSH_HOST "ls"
   tags:
     - windows
