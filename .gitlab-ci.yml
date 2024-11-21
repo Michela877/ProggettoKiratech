@@ -17,13 +17,17 @@ powershell:
     # Connetti in SSH alla macchina CentOS Manager (controller) e avvia il playbook Ansible
     - echo "Connessione in SSH alla VM Manager per avviare il playbook Ansible"
     - |
-      ssh $env:VM_SSH_USER@$env:VM_SSH_HOST
+      # Connessione SSH alla VM CentOS 9 e avvio del playbook Ansible
+      ssh $env:VM_SSH_USER@$env:VM_SSH_HOST << 'ENDSSH'
       # Vai nella directory dove si trova il playbook Ansible
-      cd 
+      ls
 
       # Esegui il playbook Ansible
-      ls
-      EOF
+     
+
+      # Esci dalla sessione SSH
+      exit
+      ENDSSH
   tags:
     - windows
 
