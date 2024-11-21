@@ -1,0 +1,173 @@
+- hosts: all
+  become: yes
+  tasks:
+    # Rimuovi versioni esistenti di Docker, containerd, kubelet, kubeadm
+    - name: Rimuovere Docker se presente
+      yum:
+        name: docker
+        state: absent
+
+    - name: Rimuovere containerd se presente
+      yum:
+        name: containerd.io
+        state: absent
+
+    - name: Rimuovere kubelet se presente
+      yum:
+        name: kubelet
+        state: absent
+
+    - name: Rimuovere kubeadm se presente
+      yum:
+        name: kubeadm
+        state: absent
+
+    # Disabilitare il firewall
+    - name: Disabilitare il firewall
+      service:
+        name: firewalld
+        state: stopped
+        enabled: false
+
+    # Disabilitare SWAP
+    - name: Disabilitare SWAP
+      shell: |
+        swapoff -a
+
+    # Rimuovere le voci di SWAP da /etc/fstab
+    - name: Rimuovere le voci di SWAP da /etc/fstab
+      lineinfile:
+        path: /etc/fstab
+        regexp: 'swap'
+        state: absent
+
+    # Disabilitare SELinux
+    - name: Disabilitare SELinux
+      command: setenforce 0
+      ignore_errors: yes
+
+    - name: Disabilitare SELinux al riavvio
+      selinux:
+        state: disabled
+
+    # Assicurarsi che il modulo br_netfilter sia caricato
+    - name: Assicurarsi che il modulo br_netfilter sia caricato
+      modprobe:
+        name: br_netfilter
+        state: present
+
+    # Aggiungere br_netfilter a modules-load.d per la persistenza
+    - name: Aggiungere br_netfilter a modules-load.d per la persistenza
+      lineinfile:
+        path: /etc/modules-load.d/br_netfilter.conf
+        line: br_netfilter
+        create: yes
+
+    # Assicurarsi che net.bridge.bridge-nf-call-ip6tables sia impostato su 1
+    - name: Assicurarsi che net.bridge.bridge-nf-call-ip6tables sia impostato su 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-ip6tables
+        value: 1
+        state: present
+        reload: yes
+
+    # Assicurarsi che net.bridge.bridge-nf-call-iptables sia impostato su 1
+    - name: Assicurarsi che net.bridge.bridge-nf-call-iptables sia impostato su 1
+      sysctl:
+        name: net.bridge.bridge-nf-call-iptables
+        value: 1
+        state: present
+        reload: yes
+
+    # Assicurarsi che net.ipv4.ip_forward sia impostato su 1
+    - name: Assicurarsi che net.ipv4.ip_forward sia impostato su 1
+      sysctl:
+        name: net.ipv4.ip_forward
+        value: '1'
+        state: present
+        reload: yes
+
+    # Aggiungere il repository Kubernetes
+    - name: Aggiungere il repository Kubernetes
+      yum_repository:
+        name: Kubernetes-Alternative
+        description: Kubernetes YUM Repository (Alternative)
+        baseurl: https://mirrors.aliyun.com/kubernetes/yum/repos/kubernetes-el7-x86_64/
+        gpgkey: https://mirrors.aliyun.com/kubernetes/yum/doc/yum-key.gpg https://mirrors.aliyun.com/kubernetes/yum/doc/rpm-package-key.gpg
+        gpgcheck: yes
+        enabled: yes
+
+    # Aggiungere il repository Docker per containerd
+    - name: Aggiungere il repository ufficiale di Docker
+      yum_repository:
+        name: docker
+        description: Docker repository
+        baseurl: https://download.docker.com/linux/centos/7/x86_64/stable
+        enabled: yes
+        gpgcheck: yes
+        gpgkey: https://download.docker.com/linux/centos/gpg
+
+    # Installare containerd.io (versione compatibile)
+    - name: Installa containerd.io (versione 1.6.21)
+      yum:
+        name: containerd.io-1.6.21
+        state: present
+
+    # Configurare containerd
+    - name: Configurare containerd per Kubernetes
+      shell: |
+        mkdir -p /etc/containerd
+        containerd config default > /etc/containerd/config.toml
+        sed -i 's/SystemdCgroup = false/SystemdCgroup = true/' /etc/containerd/config.toml
+
+    # Avvia e abilita containerd
+    - name: Avvia e abilita containerd
+      service:
+        name: containerd
+        state: started
+        enabled: true
+
+    # Installare kubelet (versione compatibile)
+    - name: Installa kubelet (versione 1.28.15)
+      yum:
+        name: kubelet
+        state: present
+        update_cache: true
+
+    # Installare kubeadm (versione compatibile)
+    - name: Installa kubeadm (versione 1.28.15)
+      yum:
+        name: kubeadm
+        state: present
+
+    # Avvia e abilita kubelet
+    - name: Avvia e abilita kubelet
+      service:
+        name: kubelet
+        state: started
+        enabled: true
+
+- hosts: masters
+  become: yes
+  tasks:
+    # Verifica se kubectl è installato
+    - name: Verifica se kubectl è installato
+      command: kubectl version --client
+      register: kubectl_installed
+      ignore_errors: true
+
+    # Installa kubectl (versione compatibile)
+    - name: Installa kubectl (versione 1.28.15)
+      yum:
+        name: kubectl
+        state: present
+        allow_downgrade: yes
+      when: kubectl_installed.failed
+
+- hosts: all
+  become: yes
+  tasks:
+    # Riavvia tutte le macchine
+    - name: Riavvia tutte le macchine
+      reboot:
+        reboot_timeout: 600
