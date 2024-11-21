@@ -1,0 +1,52 @@
+- hosts: masters
+  become: yes
+  tasks:
+    # Verifica se kubeadm init è già stato eseguito
+    - name: Check if kubeadm init has already been run
+      stat:
+        path: /etc/kubernetes/admin.conf
+      register: kubeadm_init_done
+
+    # Inizializza il cluster Kubernetes solo se non è stato già fatto
+    - name: Initialize K8S cluster
+      shell: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=192.168.178.124
+      when: not kubeadm_init_done.stat.exists
+
+    # Crea la directory .kube solo se non esiste
+    - name: Create .kube directory
+      file:
+        path: /root/.kube
+        state: directory
+        mode: 0755
+
+    # Copia il file admin.conf nella configurazione utente di kube
+    - name: Copy admin.conf to user kube config
+      copy:
+        src: /etc/kubernetes/admin.conf
+        dest: /root/.kube/config
+        remote_src: yes
+      when: not ansible_facts.k8s_cluster_initialized is defined
+
+
+
+    # Scarica il file tar di Kube-Bench
+    - name: Download Kube-Bench tar file
+      shell: curl -L https://github.com/aquasecurity/kube-bench/releases/download/v0.6.2/kube-bench_0.6.2_linux_amd64.tar.gz -o /tmp/kube-bench_0.6.2_linux_amd64.tar.gz
+
+    # Estrai il file tar di Kube-Bench
+    - name: Extract Kube-Bench tar file
+      shell: tar -xvf /tmp/kube-bench_0.6.2_linux_amd64.tar.gz -C /tmp
+      args:
+        creates: /tmp/kube-bench
+
+    # Esegui Kube-Bench
+    - name: Run Kube-Bench
+      shell: |
+        /tmp/kube-bench --config-dir /tmp/cfg --config /tmp/cfg/config.yaml
+      register: kube_bench_result
+      ignore_errors: true
+
+    # Mostra i risultati di Kube-Bench
+    - name: Output Kube-Bench results
+      debug:
+        var: kube_bench_result.stdout
