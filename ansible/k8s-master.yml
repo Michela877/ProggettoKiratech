@@ -7,9 +7,23 @@
         path: /etc/kubernetes/admin.conf
       register: kubeadm_init_done
 
+    # Verifica se il nodo è attivo usando il ping Ansible
+    - name: Ping the node to verify it's active
+      ping:
+      register: ping_result
+      ignore_errors: true
+
+    # Attiva il nodo se il ping non ha avuto successo
+    - name: Start node if not active
+      systemd:
+        name: "kubelet"
+        state: started
+        enabled: yes
+      when: ping_result.failed
+
     # Inizializza il cluster Kubernetes solo se non è stato già fatto
     - name: Initialize K8S cluster
-      shell: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=192.168.178.124
+      shell: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=172.25.118.52
       when: not kubeadm_init_done.stat.exists
 
     # Crea la directory .kube solo se non esiste
@@ -27,6 +41,34 @@
         remote_src: yes
       when: not ansible_facts.k8s_cluster_initialized is defined
 
+    # Verifica se il plugin CNI è stato correttamente applicato
+    - name: Check if CNI plugin is installed
+      command: ls /etc/cni/net.d
+      register: cni_check
+      ignore_errors: true
+
+    # Se il plugin CNI non è installato, applica un plugin di rete (Flannel, Calico, ecc.)
+    - name: Apply CNI plugin if not installed
+      shell: |
+        curl -L https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml | kubectl apply -f -
+      when: cni_check.failed
+
+    # Verifica lo stato di readiness del nodo
+    - name: Wait for node to be ready (timeout 30 seconds)
+      command: kubectl get nodes {{ inventory_hostname }} --no-headers | awk '{ print $2 }'
+      register: node_status
+      retries: 3  # Prova fino a 3 volte
+      delay: 10   # Ogni tentativo aspetta 10 secondi
+      until: node_status.stdout == "Ready"
+      ignore_errors: true
+
+    # Se il nodo non è pronto, riavvia il nodo
+    - name: Restart kubelet service if node is not ready
+      systemd:
+        name: kubelet
+        state: restarted
+        enabled: yes
+      when: node_status.stdout != "Ready"
 
 
     # Scarica il file tar di Kube-Bench
@@ -50,3 +92,4 @@
     - name: Output Kube-Bench results
       debug:
         var: kube_bench_result.stdout
+        
