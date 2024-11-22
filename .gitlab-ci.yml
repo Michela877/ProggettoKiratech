@@ -1,8 +1,9 @@
 stages:
   - powershell
+  - ssh
   - git-clone
   - ansible
-  - ssh
+
 
 variables:
   TF_INPUT: false
