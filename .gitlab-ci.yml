@@ -5,7 +5,7 @@ stages:
 variables:
   TF_INPUT: false
   POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # modifica il percorso 
-  ANSIBLE_REPO_PATH: "/path/to/your/repo"
+  ANSIBLE_REPO_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"
 
 powershell:
   stage: powershell
