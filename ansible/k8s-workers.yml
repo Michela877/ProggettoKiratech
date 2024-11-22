@@ -10,12 +10,20 @@
       set_fact:
         join_command: "{{ join_command_raw.stdout_lines[0] }}"
 
-
 - hosts: workers
   become: yes
   tasks:
-    - name: join cluster
-      shell: "{{ hostvars['master.example.com'].join_command }} --ignore-preflight-errors all  >> node_joined.txt"
+    - name: reset kubeadm to remove the node from the cluster
+      shell: kubeadm reset -f
+      when: ansible_facts['distribution'] == "Ubuntu"  # aggiungi la condizione per il tuo sistema operativo, se necessario
+
+    - name: remove old node_joined.txt file
+      file:
+        path: "{{ ansible_env.HOME }}/node_joined.txt"
+        state: absent
+      when: ansible_facts['distribution'] == "Ubuntu"  # aggiungi la condizione per il tuo sistema operativo, se necessario
+
+    - name: join cluster again
+      shell: "{{ hostvars['master.example.com'].join_command }} --ignore-preflight-errors all >> {{ ansible_env.HOME }}/node_joined.txt"
       args:
-        chdir: $HOME
-        creates: node_joined.txt
+        chdir: "{{ ansible_env.HOME }}"
