@@ -31,10 +31,21 @@ git-clone:
     - centos9  # Specifica il tag del runner per Linux
 
 
+
+setup-ssh:
+  stage: ssh
+  script:
+    - pwd
+  tags:
+    - centos9  # Specifica il tag del runner per Linux
+
+
+
 ansible:
   stage: ansible
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
+    - echo "Esecuzione di Ansible"
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
