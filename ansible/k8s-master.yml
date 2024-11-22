@@ -2,7 +2,7 @@
   become: yes
   vars:
     kube_network_cidr: "10.244.0.0/16"  # CIDR per Flannel
-    apiserver_address: "172.25.112.200"  # Indirizzo IP del master
+    apiserver_address: "172.25.115.136"  # Indirizzo IP del master
     flannel_manifest_url: "https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
 
   tasks:
