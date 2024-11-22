@@ -1,14 +1,12 @@
 stages:
   - powershell
-  - ansible
   - git-clone
-
-
+  - ansible
 
 variables:
   TF_INPUT: false
   POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # modifica il percorso 
-  ANSIBLE_REPO_PATH: "/root/automazione/ansible"
+  ANSIBLE_REPO_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"
 
 powershell:
   stage: powershell
@@ -19,32 +17,14 @@ powershell:
   tags:
     - windows
 
-
-git-clone:
-  stage: git-clone
-  script:
-    # Clona il repository Git nella cartella 'workspace'
-    - sudo su
-    - echo "Verifica se la cartella esiste già"
-    - if [ -d "/home/gitlab-runner/workspace/automazione" ]; then rm -rf /root/automazione; fi  # Rimuove la cartella se esiste
-    - echo "Clonazione del repository Git"
-    - git clone https://gitlab.com/gestionale90/automazione.git /root/automazione
-  tags:
-    - centos9  # Specifica il tag del runner per Linux
-
-
-
-
 ansible:
   stage: ansible
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
-    - sudo su
-    - cd /root/automazione/ansible
     - echo "Esecuzione di Ansible"
-    - ansible-playbook -i /root/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
-    - ansible-playbook -i /root/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
-    - ansible-playbook -i /root/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
-    - ansible-playbook -i /root/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
+    - ansible-playbook -i $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
+    - ansible-playbook -i $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
+    - ansible-playbook -i $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
+    - ansible-playbook -i $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
   tags:
     - centos9  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
