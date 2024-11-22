@@ -1,69 +1,82 @@
 - hosts: masters
   become: yes
+  vars:
+    kube_network_cidr: "10.244.0.0/16"  # CIDR per Flannel
+    apiserver_address: "172.25.112.200"  # Indirizzo IP del master
+    flannel_manifest_url: "https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml"
+
   tasks:
-    # Verifica se kubeadm init è già stato eseguito
+    # Verifica se kubeadm è già stato inizializzato
     - name: Check if kubeadm init has already been run
       stat:
         path: /etc/kubernetes/admin.conf
       register: kubeadm_init_done
 
-    # Verifica se il nodo è attivo usando il ping Ansible
-    - name: Ping the node to verify it's active
-      ping:
-      register: ping_result
-      ignore_errors: true
-
-    # Attiva il nodo se il ping non ha avuto successo
-    - name: Start node if not active
-      systemd:
-        name: "kubelet"
-        state: started
-        enabled: yes
-      when: ping_result.failed
-
-    # Inizializza il cluster Kubernetes solo se non è stato già fatto
+    # Inizializza il cluster Kubernetes se non è già stato fatto
     - name: Initialize K8S cluster
-      shell: kubeadm init --pod-network-cidr=172.16.0.0/16 --apiserver-advertise-address=172.25.118.52
+      shell: kubeadm init --pod-network-cidr={{ kube_network_cidr }} --apiserver-advertise-address={{ apiserver_address }}
       when: not kubeadm_init_done.stat.exists
 
-    # Crea la directory .kube solo se non esiste
-    - name: Create .kube directory
+    # Configura il file di accesso per kubectl
+    - name: Configure kubectl for root user
       file:
         path: /root/.kube
         state: directory
         mode: 0755
-
-    # Copia il file admin.conf nella configurazione utente di kube
-    - name: Copy admin.conf to user kube config
+    - name: Copy admin.conf to kubectl config
       copy:
         src: /etc/kubernetes/admin.conf
         dest: /root/.kube/config
         remote_src: yes
-      when: not ansible_facts.k8s_cluster_initialized is defined
 
-    # Verifica se il plugin CNI è stato correttamente applicato
-    - name: Check if CNI plugin is installed
-      command: ls /etc/cni/net.d
-      register: cni_check
-      ignore_errors: true
+    # Verifica la connettività di kubectl
+    - name: Check kubectl connectivity
+      command: kubectl cluster-info
+      register: cluster_check
+      retries: 3
+      delay: 5
+      failed_when: "'is running' not in cluster_check.stdout"
+      changed_when: false
 
-    # Se il plugin CNI non è installato, applica un plugin di rete (Flannel, Calico, ecc.)
-    - name: Apply CNI plugin if not installed
-      shell: |
-        curl -L https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml | kubectl apply -f -
-      when: cni_check.failed
+    # Scarica il manifesto di Flannel
+    - name: Download Flannel manifest
+      get_url:
+        url: "{{ flannel_manifest_url }}"
+        dest: /tmp/kube-flannel.yml
 
-    # Verifica lo stato di readiness del nodo
-    - name: Wait for node to be ready (timeout 30 seconds)
-      command: kubectl get nodes {{ inventory_hostname }} --no-headers | awk '{ print $2 }'
+
+    # Applica la rete Flannel
+    - name: Install Pod network (Flannel)
+      command: kubectl apply -f /tmp/kube-flannel.yml
+      register: flannel_apply
+      retries: 5
+      delay: 10
+      until: flannel_apply.rc == 0
+      changed_when: flannel_apply.rc == 0
+      failed_when: flannel_apply.rc != 0
+
+    # Controlla lo stato dei pod Flannel
+    - name: Check Flannel pods status
+      shell: kubectl get pods -n kube-system -l app=flannel --no-headers | awk '{ print $3 }' | grep -v Running
+      register: flannel_status
+      retries: 5
+      delay: 15
+      failed_when: flannel_status.stdout != ""
+      changed_when: false
+
+    # Attendi che il nodo master sia pronto
+    - name: Wait for master node to be ready
+      shell: kubectl get nodes {{ inventory_hostname }} --no-headers | awk '{ print $2 }'
       register: node_status
-      retries: 3  # Prova fino a 3 volte
-      delay: 10   # Ogni tentativo aspetta 10 secondi
+      retries: 9
+      delay: 10
       until: node_status.stdout == "Ready"
       ignore_errors: true
+      failed_when: node_status.stdout != "Ready"
+      changed_when: false
 
-    # Se il nodo non è pronto, riavvia il nodo
-    - name: Restart kubelet service if node is not ready
+    # Riavvia kubelet se il nodo non è pronto
+    - name: Restart kubelet if node is not ready
       systemd:
         name: kubelet
         state: restarted
@@ -92,4 +105,15 @@
     - name: Output Kube-Bench results
       debug:
         var: kube_bench_result.stdout
-        
+
+
+- hosts: kubernetes_nodes
+  become: yes
+  vars:
+    apiserver_address: "172.25.112.200"  # Indirizzo del Master
+
+  tasks:
+    # Aggiungi il nodo al cluster
+    - name: Join node to cluster
+      shell: kubeadm join {{ apiserver_address }} --token {{ token }} --discovery-token-ca-cert-hash sha256:{{ ca_hash }}
+      when: inventory_hostname != "master.example.com"
