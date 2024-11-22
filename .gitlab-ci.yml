@@ -25,4 +25,4 @@ ansible:
     - ansible-playbook /path/to/ansible/k8s-workers.yml  # Esegui il terzo file
     - ansible-playbook /path/to/ansible/k8s-deployment.yml  # Esegui il quarto file
   tags:
-    - linux  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
+    - centos9  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
