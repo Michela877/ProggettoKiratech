@@ -1,5 +1,6 @@
 stages:
   - powershell
+  - git-clone
   - ansible
 
 variables:
