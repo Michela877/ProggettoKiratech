@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mysql-deployment
+  namespace: kyratech-prova  # Namespace corretto
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mysql
+  template:
+    metadata:
+      labels:
+        app: mysql
+    spec:
+      containers:
+      - name: mysql
+        image: mysql:latest
+        env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: "my-secret-pw"
+        - name: MYSQL_DATABASE
+          value: "asset_management"
+        ports:
+        - containerPort: 3306
+        volumeMounts:
+        - name: init-sql
+          mountPath: /docker-entrypoint-initdb.d
+        resources:
+          requests:
+            memory: "256Mi"  # Memoria richiesta
+            cpu: "500m"      # CPU richiesta
+          limits:
+            memory: "1500Mi"  # Limite massimo di memoria aggiornato a 1.5 GB
+            cpu: "1"          # Limite massimo di CPU
+      volumes:
+        - name: init-sql
+          configMap:
+            name: init-sql  # ConfigMap già creato per l'inizializzazione SQL
