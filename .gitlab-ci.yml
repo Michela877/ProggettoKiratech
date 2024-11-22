@@ -2,6 +2,7 @@ stages:
   - powershell
   - git-clone
   - ansible
+  - ssh
 
 variables:
   TF_INPUT: false
@@ -28,6 +29,51 @@ git-clone:
     - git clone https://gitlab.com/gestionale90/automazione.git /home/gitlab-runner/workspace/automazione
   tags:
     - centos9  # Specifica il tag del runner per Linux
+
+
+
+setup-ssh:
+  stage: ssh
+  script:
+    # Configura SSH per gitlab-runner se non è già configurato
+    - echo "Configurazione SSH per gitlab-runner"
+    
+    # Verifica se la chiave SSH esiste, se no la crea
+    - |
+      if [ ! -f /home/gitlab-runner/.ssh/id_rsa ]; then
+        echo "Chiave SSH non trovata. Creazione della chiave SSH per gitlab-runner."
+        sudo -u gitlab-runner ssh-keygen -t rsa -b 2048 -f /home/gitlab-runner/.ssh/id_rsa -N ""
+      else
+        echo "Chiave SSH già presente, nessuna azione necessaria."
+      fi
+
+    # Verifica se la chiave pubblica è già stata aggiunta ai nodi remoti
+    - |
+      for host in "master.example.com" "nodeone.example.com" "nodetwo.example.com"; do
+        if ! sudo -u gitlab-runner ssh -o StrictHostKeyChecking=no -q $host exit; then
+          echo "Chiave pubblica SSH non trovata su $host, aggiungendo la chiave pubblica."
+          sudo -u gitlab-runner ssh-copy-id -i /home/gitlab-runner/.ssh/id_rsa.pub $host
+        else
+          echo "Chiave pubblica SSH già presente su $host."
+        fi
+      done
+
+    # Aggiungi l'host alla lista known_hosts se non è presente
+    - echo "Aggiunta degli host a known_hosts"
+    - |
+      for host in "master.example.com" "nodeone.example.com" "nodetwo.example.com"; do
+        sudo -u gitlab-runner ssh-keyscan -H $host >> /home/gitlab-runner/.ssh/known_hosts
+      done
+
+    # Impostazioni di permessi per la cartella .ssh
+    - sudo chmod 700 /home/gitlab-runner/.ssh
+    - sudo chmod 600 /home/gitlab-runner/.ssh/id_rsa
+    - sudo chmod 644 /home/gitlab-runner/.ssh/id_rsa.pub
+    - sudo chmod 644 /home/gitlab-runner/.ssh/known_hosts
+
+  tags:
+    - centos9  # Specifica il tag del runner per Linux
+
 
 
 ansible:
