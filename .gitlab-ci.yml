@@ -23,6 +23,7 @@ git-clone:
   stage: git-clone
   script:
     # Clona il repository Git nella cartella 'workspace'
+    - sudo su
     - echo "Verifica se la cartella esiste già"
     - if [ -d "/home/gitlab-runner/workspace/automazione" ]; then rm -rf /root/automazione; fi  # Rimuove la cartella se esiste
     - echo "Clonazione del repository Git"
