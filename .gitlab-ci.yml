@@ -5,7 +5,7 @@ stages:
 variables:
   TF_INPUT: false
   POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # modifica il percorso 
-  ANSIBLE_REPO_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"
+  ANSIBLE_REPO_PATH: "/home/gestionale90/automazione/ansible"
 
 powershell:
   stage: powershell
@@ -15,6 +15,17 @@ powershell:
     - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
   tags:
     - windows
+
+
+git-clone:
+  stage: git-clone
+  script:
+    # Clona il repository Git
+    - echo "Clonazione del repository Git"
+    - git clone https://gitlab.com/gestionale90/automazione.git $ANSIBLE_REPO_PATH
+  tags:
+    - centos9  # Specifica il tag del runner per Linux
+
 
 ansible:
   stage: ansible
