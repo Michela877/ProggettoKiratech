@@ -26,6 +26,10 @@ git-clone:
     - if [ -d "/home/gitlab-runner/workspace/automazione" ]; then rm -rf /home/gitlab-runner/workspace/automazione; fi  # Rimuove la cartella se esiste
     - echo "Clonazione del repository Git"
     - git clone https://gitlab.com/gestionale90/automazione.git /home/gitlab-runner/workspace/automazione
+    - echo "Controllo permessi file hosts"
+    - sudo chmod 644 /home/gitlab-runner/workspace/automazione/ansible/hosts
+    - echo "Esecuzione del playbook Ansible"
+    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml
   tags:
     - centos9  # Specifica il tag del runner per Linux
 
