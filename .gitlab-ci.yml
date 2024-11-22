@@ -26,10 +26,6 @@ git-clone:
     - if [ -d "/home/gitlab-runner/workspace/automazione" ]; then rm -rf /home/gitlab-runner/workspace/automazione; fi  # Rimuove la cartella se esiste
     - echo "Clonazione del repository Git"
     - git clone https://gitlab.com/gestionale90/automazione.git /home/gitlab-runner/workspace/automazione
-    - echo "Controllo permessi file hosts"
-    - sudo chmod 644 /home/gitlab-runner/workspace/automazione/ansible/hosts
-    - echo "Esecuzione del playbook Ansible"
-    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml
   tags:
     - centos9  # Specifica il tag del runner per Linux
 
@@ -39,9 +35,9 @@ ansible:
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
     - echo "Esecuzione di Ansible"
-    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
-    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
-    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
-    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
+    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
+    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
+    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
+    - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
   tags:
     - centos9  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
