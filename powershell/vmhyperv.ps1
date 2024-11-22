@@ -21,7 +21,7 @@ New-Item -ItemType Directory -Force -Path $VMPath
 $VMs = @(
     @{
         Name = "controller.example.com"
-        Memory = 2GB
+        Memory = 3GB
         VCPU = 1
         DiskSize = 20GB
     },
@@ -65,31 +65,30 @@ foreach ($vm in $VMs) {
     # Crea il disco virtuale
     New-VHD -Path $VHDFile -SizeBytes $DiskSize -Dynamic
 
-    # Crea la macchina virtuale con Generazione 1
-    New-VM -Name $VMName -MemoryStartupBytes $Memory -Generation 1 -Path $VMPath
+    # Crea la macchina virtuale con Generazione 2
+    New-VM -Name $VMName -MemoryStartupBytes $Memory -Generation 2 -Path $VMPath
+
+    # Disabilita Secure Boot per consentire l'avvio dell'ISO non firmato
+    Set-VMFirmware -VMName $VMName -EnableSecureBoot Off
+
+    # Configura la memoria dinamica
+    Set-VMMemory -VMName $VMName -DynamicMemoryEnabled $true -MinimumBytes 3GB -StartupBytes $Memory -MaximumBytes 4GB
 
     # Aggiungi CPU
     Set-VMProcessor -VMName $VMName -Count $VCPU
 
-    # Collega il disco virtuale al primo controller IDE (IDE 0)
+    # Collega il disco virtuale al primo controller SCSI (richiesto per Gen 2)
     Add-VMHardDiskDrive -VMName $VMName -Path $VHDFile
 
     # Collega una scheda di rete
     Add-VMNetworkAdapter -VMName $VMName -SwitchName "Default Switch"
 
-    # Collega l'immagine ISO solo al secondo controller IDE (IDE 1)
+    # Collega l'immagine ISO come dispositivo di avvio
     Add-VMDvdDrive -VMName $VMName -Path $ISOPath
 
-    # Imposta la priorità di avvio per avviare dal DVD (primo dispositivo di boot)
-    if ((Get-VM -Name $VMName).Generation -eq 2) {
-        # Se la macchina è di Generazione 2, usiamo Set-VMFirmware
-        $dvdDrive = Get-VMDvdDrive -VMName $VMName | Select-Object -First 1
-        Set-VMFirmware -VMName $VMName -FirstBootDevice $dvdDrive
-    } else {
-        # Se la macchina è di Generazione 1, usiamo Set-VMBios
-        $bios = Get-VMBios -VMName $VMName
-        Set-VMBios -VMName $VMName -BootOrder $bios.BootOrder[1]  # Imposta il dispositivo DVD come primo dispositivo di avvio
-    }
+    # Imposta il dispositivo di avvio al DVD per Generazione 2
+    $dvdDrive = Get-VMDvdDrive -VMName $VMName | Select-Object -First 1
+    Set-VMFirmware -VMName $VMName -FirstBootDevice $dvdDrive
 
     Write-Host "Macchina virtuale $VMName creata con successo."
 }
