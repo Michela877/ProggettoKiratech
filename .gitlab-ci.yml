@@ -1,6 +1,5 @@
 stages:
   - powershell
-  - ssh
   - git-clone
   - ansible
 
@@ -32,58 +31,10 @@ git-clone:
     - centos9  # Specifica il tag del runner per Linux
 
 
-
-setup-ssh:
-  stage: ssh
-  script:
-  script:
-    # Copia le chiavi SSH dall'utente root all'utente gitlab-runner
-    - echo "Copia delle chiavi SSH da root a gitlab-runner"
-    
-    # Copia le chiavi SSH se non esistono già nella home di gitlab-runner
-    - |
-      if [ ! -d /home/gitlab-runner/.ssh ]; then
-        echo "Creazione della directory .ssh per gitlab-runner"
-        sudo mkdir -p /home/gitlab-runner/.ssh
-      fi
-      if [ ! -f /home/gitlab-runner/.ssh/id_rsa ]; then
-        echo "Copia delle chiavi SSH da root a gitlab-runner"
-        sudo cp /root/.ssh/id_rsa /home/gitlab-runner/.ssh/
-        sudo cp /root/.ssh/id_rsa.pub /home/gitlab-runner/.ssh/
-      else
-        echo "Le chiavi SSH sono già presenti in /home/gitlab-runner/.ssh"
-      fi
-
-    # Impostazioni di permessi per la cartella .ssh
-    - sudo chmod 700 /home/gitlab-runner/.ssh
-    - sudo chmod 600 /home/gitlab-runner/.ssh/id_rsa
-    - sudo chmod 644 /home/gitlab-runner/.ssh/id_rsa.pub
-    - sudo chmod 644 /home/gitlab-runner/.ssh/known_hosts
-
-    # Aggiungi gli host remoti al file known_hosts (evita l'interazione durante SSH)
-    - echo "Aggiunta degli host a known_hosts"
-    - |
-      for host in "master.example.com" "nodeone.example.com" "nodetwo.example.com"; do
-        sudo -u gitlab-runner ssh-keyscan -H $host >> /home/gitlab-runner/.ssh/known_hosts
-      done
-
-    # Impostazione dei permessi per il file known_hosts
-    - sudo chmod 644 /home/gitlab-runner/.ssh/known_hosts
-
-  tags:
-    - centos9  # Specifica il tag del runner per Linux
-
-
-
 ansible:
   stage: ansible
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
-    - echo "Verifica dei file di configurazione SSH"
-    - cat ~/.ssh/known_hosts
-    - cat ~/.ssh/config || echo "Config file non trovato"
-    - ssh -T git@github.com  # Verifica connessione SSH al server
-    - echo "Esecuzione di Ansible"
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
