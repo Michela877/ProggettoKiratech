@@ -34,6 +34,10 @@ ansible:
   stage: ansible
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
+    - echo "Verifica dei file di configurazione SSH"
+    - cat ~/.ssh/known_hosts
+    - cat ~/.ssh/config || echo "Config file non trovato"
+    - ssh -T git@github.com  # Verifica connessione SSH al server
     - echo "Esecuzione di Ansible"
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
     - ansible-playbook -i /home/gitlab-runner/workspace/automazione/ansible/hosts $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
