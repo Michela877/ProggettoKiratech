@@ -4,7 +4,8 @@ stages:
 
 variables:
   TF_INPUT: false
-  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_mgXzgi/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso 
+  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # modifica il percorso 
+  ANSIBLE_REPO_PATH: "/path/to/your/repo"
 
 powershell:
   stage: powershell
@@ -20,9 +21,9 @@ ansible:
   script:
     # Esegui Ansible per eseguire i file .yml in ordine
     - echo "Esecuzione di Ansible"
-    - ansible-playbook /path/to/ansible/k8s-pkg.yml  # Esegui il primo file
-    - ansible-playbook /path/to/ansible/k8s-master.yml  # Esegui il secondo file
-    - ansible-playbook /path/to/ansible/k8s-workers.yml  # Esegui il terzo file
-    - ansible-playbook /path/to/ansible/k8s-deployment.yml  # Esegui il quarto file
+    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
+    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
+    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
+    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
   tags:
     - centos9  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
