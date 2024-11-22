@@ -1,0 +1,191 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: init-sql
+  namespace: kyratech-prova
+data:
+  init.sql: |
+    CREATE DATABASE IF NOT EXISTS asset_management;
+
+    use asset_management;
+
+    CREATE TABLE IF NOT EXISTS dipendenti (
+      id int auto_increment primary key,
+      nome varchar(100) not null,
+      cognome varchar(100) not null,
+      sesso varchar(1) not null,
+      cod_fisc varchar(100) not null unique,
+      data_nascita date not null,
+      citta varchar(100) not null,
+      provincia varchar(2) not null,
+      via varchar(100) not null,
+      email varchar(100) not null unique,
+      telefono1 varchar(10) not null unique,
+      telefono2 varchar(10),
+      tipologia_contratto varchar(100) not null,
+      data_assunzione date not null,
+      scadenza_contratto date,
+      ruolo varchar(100) not null,
+      stipendio int not null,
+      reparto varchar(100) not null,
+      competenze varchar(100),
+      descr_competenze varchar(100),
+      sede_azienda varchar(100) not null
+    );
+
+    CREATE TABLE IF NOT EXISTS certificazioni (
+      codice_cert varchar(100),                    #9389394
+      id_dipendente INT NOT NULL,
+      nome_cert varchar(100),                      #AZ104
+      tipologia_cert varchar(100),                 #Azure
+      lingua_cert varchar(100),                    #Inglese
+      livello_cert varchar(100),                   #B2
+      azienda_erogatrice varchar(100),             #Microsoft
+      data_cert date,                              #21/07/23
+      data_scad_cert date,                         #21/07/2028
+      data_rinnovo_cert date,                      #25/08/2028
+      data_scad_rinnovo_cert date,                 #25/08/2034
+      stato_cert varchar(100),                     #scaduta, valida
+      note varchar(255),
+      FOREIGN KEY (id_dipendente) REFERENCES dipendenti(id)
+    );
+
+    CREATE TABLE IF NOT EXISTS login (
+      email varchar(100) not null unique,
+      credenziali_accesso varchar(100) not null
+    );
+
+    CREATE TABLE IF NOT EXISTS dispositivi (
+      dispositivo varchar(100) not null,
+      srn_iccid varchar(100) primary key not null unique,
+      num_aziendale varchar(10),
+      data_acquisto date,
+      scad_garanzia date,
+      ram varchar(100),
+      archiviazione varchar(100),
+      processore varchar(100),
+      os varchar(100),
+      oper_telefonico varchar(100),
+      modello varchar(100),
+      stato_dispositivo varchar(100),
+      inizio_riparazione date,
+      fine_riparazione date,
+      tipologia_riparazione varchar(100),
+      pezzo_ricambio varchar(100),
+      disponibilita varchar(1) not null,
+      note varchar(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS veicoli (
+      marca varchar(100) not null,
+      modello varchar(100) not null,
+      targa varchar(100) primary key not null unique,
+      tipologia varchar(100), #berlina, suv ecc.
+      KM int not null,
+      motorizzazione varchar(100) not null, #elettrico, benzina
+      colore varchar(100) not null,
+      data_immatricolazione date not null,
+      porte int not null,
+      cv int not null,
+      rifornimento varchar(100), #costo benzina
+      data_rifornimento varchar (100),
+      totale_rifornimento_mensile varchar(100),
+      allegato_rifornimento mediumblob,
+      stato_veicolo varchar(100) not null, #ottimo...
+      inizio_riparazione date,
+      fine_riparazione date,
+      costo_riparazione int,
+      tipologia_riparazione varchar(100),
+      pezzo_ricambio varchar(100),
+      scad_assicurazione date not null,
+      scad_revisione date not null,
+      ultimo_tagliando date,
+      disponibilita varchar(1) not null,
+      note varchar (255)
+    );
+
+    CREATE TABLE IF NOT EXISTS concessioni (
+      id int auto_increment primary key,
+      nome varchar(100),
+      cognome varchar(100),
+      srn_iccid varchar(100),
+      targa varchar(100),
+      data_inizio date,
+      data_fine date,
+      stato_concessioni varchar(100),
+      note varchar(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS presenze (
+      id_num int auto_increment primary key,
+      id int,
+      data_presenza date not null,
+      data2_presenza date,
+      orario1_entrata time,
+      orario1_uscita time,
+      orario2_entrata time,
+      orario2_uscita time,
+      orario_pausa int,
+      orario_inizio_straordinario time,
+      orario_fine_straordinario time,
+      totale_ore_straordinari int,
+      note varchar(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS richieste (
+      id int,
+      nome varchar(100),
+      cognome varchar(100),
+      data_inizio_ferie date,
+      data_fine_ferie date,
+      data_permesso date,
+      orario_inizio_permesso time,
+      orario_fine_permesso time,
+      data_inizio_malattia date,
+      data_fine_malattia date,
+      numero_protocollo varchar(100),
+      rimborso_tipologia varchar(100), #treno,...
+      rimborso_spese int,
+      rimborso_data_inizio date,
+      rimborso_data_fine date,
+      allegati mediumblob,
+      stato_richieste varchar(100), #accettato, in_corso, declinato
+      tipologie_richieste varchar(100), #malattia, permesso, ferie
+      note varchar(255)
+    );
+
+    CREATE TABLE IF NOT EXISTS logs (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      timestamp BIGINT NOT NULL,
+      log TEXT NOT NULL
+    );
+
+    CREATE VIEW IF NOT EXISTS presenze_con_totale_ore AS
+    SELECT
+        id,
+        data_presenza,
+        orario1_entrata,
+        orario1_uscita,
+        orario2_entrata,
+        orario2_uscita,
+        TIME_TO_SEC(TIMEDIFF(orario1_uscita, orario1_entrata)) / 3600 +
+        TIME_TO_SEC(TIMEDIFF(orario2_uscita, orario2_entrata)) / 3600 AS totale_ore
+    FROM
+        presenze;
+
+    CREATE VIEW IF NOT EXISTS presenze_con_totale_ore2 AS
+    SELECT
+        id,
+        data_presenza,
+        orario1_entrata,
+        orario1_uscita,
+        TIME_TO_SEC(TIMEDIFF(orario1_uscita, orario1_entrata)) / 3600 as totale_ore2
+    FROM
+        presenze;
+
+    CREATE TABLE IF NOT EXISTS esame (
+        id INT AUTO_INCREMENT PRIMARY KEY,
+        nome varchar(30),
+        cognome varchar(30),
+        punteggio int
+    );
