@@ -7,6 +7,11 @@
         name: docker
         state: absent
 
+    - name: Rimuovere Kubectl se presente
+      yum:
+        name: kubectl
+        state: absent
+
     - name: Rimuovere containerd se presente
       yum:
         name: containerd.io
