@@ -1,5 +1,6 @@
 stages:
   - powershell
+  - ansible
 
 variables:
   TF_INPUT: false
@@ -13,3 +14,15 @@ powershell:
     - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
   tags:
     - windows
+
+ansible:
+  stage: ansible
+  script:
+    # Esegui Ansible per eseguire i file .yml in ordine
+    - echo "Esecuzione di Ansible"
+    - ansible-playbook /path/to/ansible/k8s-pkg.yml  # Esegui il primo file
+    - ansible-playbook /path/to/ansible/k8s-master.yml  # Esegui il secondo file
+    - ansible-playbook /path/to/ansible/k8s-workers.yml  # Esegui il terzo file
+    - ansible-playbook /path/to/ansible/k8s-deployment.yml  # Esegui il quarto file
+  tags:
+    - linux  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
