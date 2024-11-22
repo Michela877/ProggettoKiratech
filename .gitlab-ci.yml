@@ -36,40 +36,38 @@ git-clone:
 setup-ssh:
   stage: ssh
   script:
-    # Configura SSH per gitlab-runner se non è già configurato
-    - echo "Configurazione SSH per gitlab-runner"
+  script:
+    # Copia le chiavi SSH dall'utente root all'utente gitlab-runner
+    - echo "Copia delle chiavi SSH da root a gitlab-runner"
     
-    # Verifica se la chiave SSH esiste, se no la crea
+    # Copia le chiavi SSH se non esistono già nella home di gitlab-runner
     - |
+      if [ ! -d /home/gitlab-runner/.ssh ]; then
+        echo "Creazione della directory .ssh per gitlab-runner"
+        sudo mkdir -p /home/gitlab-runner/.ssh
+      fi
       if [ ! -f /home/gitlab-runner/.ssh/id_rsa ]; then
-        echo "Chiave SSH non trovata. Creazione della chiave SSH per gitlab-runner."
-        sudo -u gitlab-runner ssh-keygen -t rsa -b 2048 -f /home/gitlab-runner/.ssh/id_rsa -N ""
+        echo "Copia delle chiavi SSH da root a gitlab-runner"
+        sudo cp /root/.ssh/id_rsa /home/gitlab-runner/.ssh/
+        sudo cp /root/.ssh/id_rsa.pub /home/gitlab-runner/.ssh/
       else
-        echo "Chiave SSH già presente, nessuna azione necessaria."
+        echo "Le chiavi SSH sono già presenti in /home/gitlab-runner/.ssh"
       fi
 
-    # Verifica se la chiave pubblica è già stata aggiunta ai nodi remoti
-    - |
-      for host in "master.example.com" "nodeone.example.com" "nodetwo.example.com"; do
-        if ! sudo -u gitlab-runner ssh -o StrictHostKeyChecking=no -q $host exit; then
-          echo "Chiave pubblica SSH non trovata su $host, aggiungendo la chiave pubblica."
-          sudo -u gitlab-runner ssh-copy-id -i /home/gitlab-runner/.ssh/id_rsa.pub $host
-        else
-          echo "Chiave pubblica SSH già presente su $host."
-        fi
-      done
+    # Impostazioni di permessi per la cartella .ssh
+    - sudo chmod 700 /home/gitlab-runner/.ssh
+    - sudo chmod 600 /home/gitlab-runner/.ssh/id_rsa
+    - sudo chmod 644 /home/gitlab-runner/.ssh/id_rsa.pub
+    - sudo chmod 644 /home/gitlab-runner/.ssh/known_hosts
 
-    # Aggiungi l'host alla lista known_hosts se non è presente
+    # Aggiungi gli host remoti al file known_hosts (evita l'interazione durante SSH)
     - echo "Aggiunta degli host a known_hosts"
     - |
       for host in "master.example.com" "nodeone.example.com" "nodetwo.example.com"; do
         sudo -u gitlab-runner ssh-keyscan -H $host >> /home/gitlab-runner/.ssh/known_hosts
       done
 
-    # Impostazioni di permessi per la cartella .ssh
-    - sudo chmod 700 /home/gitlab-runner/.ssh
-    - sudo chmod 600 /home/gitlab-runner/.ssh/id_rsa
-    - sudo chmod 644 /home/gitlab-runner/.ssh/id_rsa.pub
+    # Impostazione dei permessi per il file known_hosts
     - sudo chmod 644 /home/gitlab-runner/.ssh/known_hosts
 
   tags:
