@@ -22,10 +22,11 @@ powershell:
 ansible:
   stage: ansible
   script:
-    # Verifica che l'inventario esista
-    - if [ ! -f "$ANSIBLE_INVENTORY" ]; then echo "File di inventario non trovato: $ANSIBLE_INVENTORY" && exit 1; fi
-
-    # Esegui i playbook Ansible in ordine
+    - |
+      if [ ! -f "$ANSIBLE_INVENTORY" ]; then 
+        echo "File di inventario non trovato: $ANSIBLE_INVENTORY"
+        exit 1
+      fi
     - echo "Esecuzione di Ansible"
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-pkg.yml
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-master.yml
