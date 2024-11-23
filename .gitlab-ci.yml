@@ -33,7 +33,10 @@ ssh-setup:
       else
         echo "Chiave SSH già esistente. Procedo."
       fi
-    
+
+    # Esporta la variabile SSH_PASS per garantire che venga utilizzata correttamente
+    - export SSH_PASS="$SSH_PASS"
+
     # Copia la chiave pubblica sui nodi
     - echo "Copiando la chiave SSH su master.example.com"
     - sshpass -p "$SSH_PASS" ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_KEY_PATH.pub root@master.example.com
