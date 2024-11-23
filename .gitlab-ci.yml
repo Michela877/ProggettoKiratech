@@ -1,5 +1,6 @@
 stages:
   - powershell
+  - ssh-setup
   - git-clone
   - ansible
 
@@ -8,6 +9,9 @@ variables:
   POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso se necessario
   ANSIBLE_INVENTORY: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible/hosts"  # Percorso del file di inventario
   ANSIBLE_PLAYBOOK_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"  # Percorso dei playbook
+  SSH_KEY_PATH: "/home/gitlab-runner/.ssh/id_rsa"
+  SSH_CONFIG_PATH: "/home/gitlab-runner/.ssh/config"
+  SSH_PASS: "1996"  # Imposta qui la password dell'utente root sui nodi
 
 powershell:
   stage: powershell
@@ -18,6 +22,48 @@ powershell:
   tags:
     - windows
 
+ssh-setup:
+  stage: ssh-setup
+  script:
+    # Genera una nuova coppia di chiavi SSH
+    - echo "Generando la chiave SSH"
+    - ssh-keygen -t rsa -b 4096 -f $SSH_KEY_PATH -N ""
+    
+    # Copia la chiave pubblica sui nodi
+    - echo "Copiando la chiave SSH su master.example.com"
+    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@master.example.com
+    
+    - echo "Copiando la chiave SSH su nodeone.example.com"
+    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@nodeone.example.com
+    
+    - echo "Copiando la chiave SSH su nodetwo.example.com"
+    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@nodetwo.example.com
+
+    # Configura il file ~/.ssh/config per il login senza password
+    - echo "Configurando il file SSH config"
+    - mkdir -p /home/gitlab-runner/.ssh
+    - echo "Host master.example.com" > $SSH_CONFIG_PATH
+    - echo "    User root" >> $SSH_CONFIG_PATH
+    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+    - echo "Host nodeone.example.com" >> $SSH_CONFIG_PATH
+    - echo "    User root" >> $SSH_CONFIG_PATH
+    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+    - echo "Host nodetwo.example.com" >> $SSH_CONFIG_PATH
+    - echo "    User root" >> $SSH_CONFIG_PATH
+    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+
+    # Imposta i permessi corretti per la cartella .ssh e il file config
+    - chmod 700 /home/gitlab-runner/.ssh
+    - chmod 600 $SSH_CONFIG_PATH
+
+    # Verifica la connessione SSH
+    - echo "Testando la connessione SSH"
+    - ssh -o StrictHostKeyChecking=no root@master.example.com "echo 'Connessione SSH a master.example.com riuscita!'"
+    - ssh -o StrictHostKeyChecking=no root@nodeone.example.com "echo 'Connessione SSH a nodeone.example.com riuscita!'"
+    - ssh -o StrictHostKeyChecking=no root@nodetwo.example.com "echo 'Connessione SSH a nodetwo.example.com riuscita!'"
+
+  tags:
+    - centos9  # Assicurati che il runner GitLab sia configurato con il tag centos9 per questo job
 
 ansible:
   stage: ansible
