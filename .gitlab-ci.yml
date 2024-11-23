@@ -1,7 +1,6 @@
 stages:
   - powershell
   - ssh-setup
-  - git-clone
   - ansible
 
 variables:
