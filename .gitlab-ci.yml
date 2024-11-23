@@ -11,7 +11,6 @@ variables:
   ANSIBLE_PLAYBOOK_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"  # Percorso dei playbook
   SSH_KEY_PATH: "/home/gitlab-runner/.ssh/id_rsa"
   SSH_CONFIG_PATH: "/home/gitlab-runner/.ssh/config"
-  SSH_PASS: "1996"  # Imposta qui la password dell'utente root sui nodi
 
 powershell:
   stage: powershell
