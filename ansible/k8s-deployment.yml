@@ -12,8 +12,8 @@
 
     - name: Clonare o aggiornare il repository da GitHub
       git:
-        repo: 'https://gitlab.com/gestionale90/k8s.git'
-        dest: /tmp/k8s
+        repo: 'https://gitlab.com/gestionale90/automazione.git'
+        dest: /tmp/automazione
         version: main
         force: yes  # Forza l'aggiornamento del repository
       register: git_clone_result
@@ -39,7 +39,7 @@
         var: delete_flask_pods_result
 
     - name: Deploy Persistent Volume Claim per MySQL
-      command: kubectl apply -f /tmp/k8s/mysql-pvc.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/mysql-pvc.yaml -n kyratech-prova
       register: pvc_result
 
     - name: Mostrare il risultato del PVC
@@ -47,7 +47,7 @@
         var: pvc_result
 
     - name: Deploy MySQL ConfigMap per lo script di inizializzazione
-      command: kubectl apply -f /tmp/k8s/init-sql-configmap.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/init-sql-configmap.yaml -n kyratech-prova
       register: configmap_result
 
     - name: Mostrare il risultato del ConfigMap
@@ -55,7 +55,7 @@
         var: configmap_result
 
     - name: Deploy MySQL Deployment
-      command: kubectl apply -f /tmp/k8s/mysql-deployment.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/mysql-deployment.yaml -n kyratech-prova
       register: mysql_deployment_result
 
     - name: Mostrare il risultato del Deployment MySQL
@@ -71,7 +71,7 @@
         var: mysql_wait_result
 
     - name: Deploy MySQL Service
-      command: kubectl apply -f /tmp/k8s/mysql-service.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/mysql-service.yaml -n kyratech-prova
       register: mysql_service_result
 
     - name: Mostrare il risultato del Service MySQL
@@ -79,7 +79,7 @@
         var: mysql_service_result
 
     - name: Deploy Flask Deployment
-      command: kubectl apply -f /tmp/k8s/flask-deployment.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/flask-deployment.yaml -n kyratech-prova
       register: flask_deployment_result
 
     - name: Mostrare il risultato del Deployment Flask
@@ -87,7 +87,7 @@
         var: flask_deployment_result
 
     - name: Deploy Flask Service
-      command: kubectl apply -f /tmp/k8s/flask-service.yaml -n kyratech-prova
+      command: kubectl apply -f /tmp/automazione/k8s/flask-service.yaml -n kyratech-prova
       register: flask_service_result
 
     - name: Mostrare il risultato del Service Flask
