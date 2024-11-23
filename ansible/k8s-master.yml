@@ -40,9 +40,15 @@
 
     # Scarica il manifesto di Flannel
     - name: Download Flannel manifest
-      get_url:
+      ansible.builtin.get_url:
         url: "{{ flannel_manifest_url }}"
         dest: /tmp/kube-flannel.yml
+      register: download_result
+      retries: 3
+      delay: 10  # Tempo di attesa (in secondi) tra un tentativo e l'altro
+      until: download_result is succeeded
+       ignore_errors: yes
+      
 
 
     # Applica la rete Flannel
