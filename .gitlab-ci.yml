@@ -25,38 +25,62 @@ powershell:
 ssh-setup:
   stage: ssh-setup
   script:
-    # Genera una nuova coppia di chiavi SSH
-    - echo "Generando la chiave SSH"
-    - ssh-keygen -t rsa -b 4096 -f $SSH_KEY_PATH -N ""
+    # Verifica se la chiave SSH esiste, altrimenti la crea
+    - echo "Verificando se la chiave SSH esiste"
+    - |
+      if [ ! -f $SSH_KEY_PATH ]; then
+        echo "Generando la chiave SSH"
+        ssh-keygen -t rsa -b 4096 -f $SSH_KEY_PATH -N ""
+      else
+        echo "Chiave SSH già esistente. Procedo."
+      fi
     
-    # Copia la chiave pubblica sui nodi
-    - echo "Copiando la chiave SSH su master.example.com"
-    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@master.example.com
-    
-    - echo "Copiando la chiave SSH su nodeone.example.com"
-    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@nodeone.example.com
-    
-    - echo "Copiando la chiave SSH su nodetwo.example.com"
-    - sshpass -p "$SSH_PASS" ssh-copy-id -i $SSH_KEY_PATH.pub root@nodetwo.example.com
+    # Copia la chiave pubblica sui nodi solo se non è già stata copiata
+    - echo "Verificando se la chiave SSH è già stata copiata su master.example.com"
+    - |
+      sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no root@master.example.com "exit" || {
+        echo "Copiando la chiave SSH su master.example.com"
+        sshpass -p "$SSH_PASS" ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_KEY_PATH.pub root@master.example.com
+      }
 
-    # Configura il file ~/.ssh/config per il login senza password
-    - echo "Configurando il file SSH config"
-    - mkdir -p /home/gitlab-runner/.ssh
-    - echo "Host master.example.com" > $SSH_CONFIG_PATH
-    - echo "    User root" >> $SSH_CONFIG_PATH
-    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
-    - echo "Host nodeone.example.com" >> $SSH_CONFIG_PATH
-    - echo "    User root" >> $SSH_CONFIG_PATH
-    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
-    - echo "Host nodetwo.example.com" >> $SSH_CONFIG_PATH
-    - echo "    User root" >> $SSH_CONFIG_PATH
-    - echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+    - echo "Verificando se la chiave SSH è già stata copiata su nodeone.example.com"
+    - |
+      sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no root@nodeone.example.com "exit" || {
+        echo "Copiando la chiave SSH su nodeone.example.com"
+        sshpass -p "$SSH_PASS" ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_KEY_PATH.pub root@nodeone.example.com
+      }
+
+    - echo "Verificando se la chiave SSH è già stata copiata su nodetwo.example.com"
+    - |
+      sshpass -p "$SSH_PASS" ssh -o StrictHostKeyChecking=no root@nodetwo.example.com "exit" || {
+        echo "Copiando la chiave SSH su nodetwo.example.com"
+        sshpass -p "$SSH_PASS" ssh-copy-id -o StrictHostKeyChecking=no -i $SSH_KEY_PATH.pub root@nodetwo.example.com
+      }
+
+    # Configura il file ~/.ssh/config per il login senza password solo se non esiste già
+    - echo "Verificando se il file config esiste"
+    - |
+      if [ ! -f $SSH_CONFIG_PATH ]; then
+        echo "Configurando il file SSH config"
+        mkdir -p /home/gitlab-runner/.ssh
+        echo "Host master.example.com" > $SSH_CONFIG_PATH
+        echo "    User root" >> $SSH_CONFIG_PATH
+        echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+        echo "Host nodeone.example.com" >> $SSH_CONFIG_PATH
+        echo "    User root" >> $SSH_CONFIG_PATH
+        echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+        echo "Host nodetwo.example.com" >> $SSH_CONFIG_PATH
+        echo "    User root" >> $SSH_CONFIG_PATH
+        echo "    IdentityFile $SSH_KEY_PATH" >> $SSH_CONFIG_PATH
+      else
+        echo "File config già esistente. Procedo."
+      fi
 
     # Imposta i permessi corretti per la cartella .ssh e il file config
     - chmod 700 /home/gitlab-runner/.ssh
     - chmod 600 $SSH_CONFIG_PATH
 
-    # Verifica la connessione SSH
+    # Verifica la connessione SSH ai nodi
     - echo "Testando la connessione SSH"
     - ssh -o StrictHostKeyChecking=no root@master.example.com "echo 'Connessione SSH a master.example.com riuscita!'"
     - ssh -o StrictHostKeyChecking=no root@nodeone.example.com "echo 'Connessione SSH a nodeone.example.com riuscita!'"
