@@ -5,26 +5,31 @@ stages:
 
 variables:
   TF_INPUT: false
-  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # modifica il percorso 
-  ANSIBLE_REPO_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"
+  POWERSHELL_SCRIPT_PATH: "C:/GitLab-Runner/builds/t3_x3dcaD/0/gestionale90/automazione/powershell/vmhyperv.ps1"  # Modifica il percorso se necessario
+  ANSIBLE_INVENTORY: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible/hosts"  # Percorso del file di inventario
+  ANSIBLE_PLAYBOOK_PATH: "/home/gitlab-runner/builds/t3_8TdCPp/0/gestionale90/automazione/ansible"  # Percorso dei playbook
 
 powershell:
   stage: powershell
   script:
     # Esegui lo script PowerShell per creare le VM Hyper-V
     - echo "Esecuzione dello script PowerShell per creare le VM"
-    - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH  # Assicurati che il percorso sia corretto
+    - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH
   tags:
     - windows
+
 
 ansible:
   stage: ansible
   script:
-    # Esegui Ansible per eseguire i file .yml in ordine
+    # Verifica che l'inventario esista
+    - if [ ! -f "$ANSIBLE_INVENTORY" ]; then echo "File di inventario non trovato: $ANSIBLE_INVENTORY" && exit 1; fi
+
+    # Esegui i playbook Ansible in ordine
     - echo "Esecuzione di Ansible"
-    - ansible-playbook $ANSIBLE_REPO_PATH/k8s-pkg.yml  # Esegui il primo file
-    - ansible-playbook $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-master.yml  # Esegui il secondo file
-    - ansible-playbook $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-workers.yml  # Esegui il terzo file
-    - ansible-playbook $ANSIBLE_REPO_PATH $ANSIBLE_REPO_PATH/k8s-deployment.yml  # Esegui il quarto file
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-pkg.yml
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-master.yml
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-workers.yml
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-deployment.yml
   tags:
-    - centos9  # Specifica il tag del runner per Linux (assumendo che il runner Ansible sia Linux)
+    - centos9
