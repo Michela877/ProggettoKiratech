@@ -24,6 +24,7 @@ ssh-setup:
       else
         echo "Chiave SSH già esistente. Procedo."
       fi
+    - yum install -y sshpass
 
     # Esporta la variabile SSH_PASS per garantire che venga utilizzata correttamente
     - export SSH_PASS="$SSH_PASS"
