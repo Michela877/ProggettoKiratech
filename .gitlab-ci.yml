@@ -20,6 +20,7 @@ dipendenze:
     - sudo yum install -y epel-release
     - sudo yum install -y git
     - sudo yum install -y ansible
+    - sudo yum install -y sshpass
   tags:
     - centos9
 
