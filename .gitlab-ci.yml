@@ -50,8 +50,8 @@ ssh-setup:
 
     # Esporta la variabile SSH_PASS per garantire che venga utilizzata correttamente
     - export SSH_PASS="$SSH_PASS"
-    - sshpass -p "$SSH_PASS" ssh root@172.31.177.20 "sudo sh -c 'echo \"$(cat /etc/hosts)\" > /etc/hosts'"
-    - sshpass -p "$SSH_PASS" ssh root@172.31.177.30 "sudo sh -c 'echo \"$(cat /etc/hosts)\" > /etc/hosts'"
+    - sshpass -p "$SSH_PASS" scp /etc/hosts root@172.31.177.20:/etc/
+    - sshpass -p "$SSH_PASS" scp /etc/hosts root@172.31.177.30:/etc/
     - sshpass -p "$SSH_PASS" scp /etc/hosts root@172.31.177.40:/etc/
     
     # Copia la chiave pubblica sui nodi
