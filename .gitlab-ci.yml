@@ -1,5 +1,6 @@
 stages:
   - powershell
+  - dipendenze
   - ssh-setup
   - ansible
 
@@ -11,6 +12,16 @@ powershell:
     - powershell.exe -ExecutionPolicy Bypass -File $env:POWERSHELL_SCRIPT_PATH
   tags:
     - windows
+
+
+dipendenze:
+  stage: dipendenze
+  script:
+    - sudo yum install -y epel-release
+    - sudo yum install -y git
+    - sudo yum install -y ansible
+  tags:
+    - centos9
 
 ssh-setup:
   stage: ssh-setup
