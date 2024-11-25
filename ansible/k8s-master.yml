@@ -109,13 +109,6 @@
         remote_src: yes
         mode: '0755'
 
-    # Verifica installazione Helm
-    - name: Verify Helm installation
-      shell: "helm version"
-      register: helm_version
-    - debug:
-        msg: "Helm installed successfully: {{ helm_version.stdout }}"
-
 
     # Scarica il file tar di Kube-Bench
     - name: Download Kube-Bench tar file
