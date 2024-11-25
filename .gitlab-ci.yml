@@ -1,8 +1,6 @@
 stages:
-  - powershell
-  - dipendenze
-  - ssh-setup
-  - ansible
+  - build
+  - push
 
 powershell:
   stage: powershell
@@ -32,8 +30,7 @@ dipendenze:
       fi
   tags:
     - centos9
-  tags:
-    - centos9
+
 
 ssh-setup:
   stage: ssh-setup
@@ -105,3 +102,29 @@ ansible:
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-deployment.yml
   tags:
     - centos9
+
+
+build:
+  stage: build
+  script:
+    # Login a Docker Hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    # Build dell'immagine Docker
+    - docker build -t $DOCKER_IMAGE .
+    # Tag dell'immagine (opzionale)
+    - docker tag $DOCKER_IMAGE $DOCKER_IMAGE:latest
+  tags:
+    - windows  # Assicurati che il runner con Docker locale abbia questo tag
+
+push:
+  stage: push
+  script:
+    # Login a Docker Hub
+    - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+    # Push dell'immagine
+    - docker push $DOCKER_IMAGE
+    # Push del tag (opzionale)
+    - docker push $DOCKER_IMAGE:latest
+  tags:
+    - windows
+
