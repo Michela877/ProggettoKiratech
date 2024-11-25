@@ -1,15 +1,46 @@
 #Automazione
+
+
+
+
+
 Questo repository eseguirà il provisioning di un cluster Kubernetes composto da un nodo manager, un nodo master e due nodi worker per il deployment di un'applicazione.
 
+
+
+
 #GitLab Runner su Windows (Configurazione Manuale)
+
+
+
+
+
 Il primo passo consiste nel configurare il GitLab Runner sul sistema operativo desiderato. Assicurati che siano abilitati e installati Hyper-V e Docker, in modo da poter eseguire lo script che creerà le VM necessarie.
 
+
+
+
+
 #Powershell Automatizzato
+
+
+
+
 Nel secondo passo, utilizzando la cartella di Powershell, verranno create localmente tramite Hyper-V quattro macchine virtuali con tutte le configurazioni richieste.
 
 Nota: Per automatizzare ulteriormente il processo, è possibile utilizzare un file ISO modificato (ad esempio con indirizzi IP statici), oppure optare per un provider cloud.
 
+
+
+
+
 #Configurazione di Hyper-V con un ISO non modificato
+
+
+
+
+
+
 Nel terzo passo, dovrai attendere che tutte le VM siano avviate. Una volta avviate, configura gli indirizzi IP statici e una password di root per ciascuna VM. Ecco un esempio di configurazione:
 
 Nome	                Indirizzo IP	Gateway	        DNS
@@ -23,7 +54,17 @@ sudo nano /etc/NetworkManager/system-connections/eth1.nmconnection
 sudo systemctl restart NetworkManager
 cat /etc/resolv.conf
 
+
+
+
+
 #GitLab Runner su CentOS 9 (Configurazione Manuale)
+
+
+
+
+
+
 Nel quarto passo, una volta configurati gli indirizzi IP sulle VM, è necessario installare il GitLab Runner su controller.example.com. Successivamente, bisogna installare git (altrimenti la pipeline non funzionerà) e concedere tutte le autorizzazioni sudo con i seguenti comandi:
 
 yum install git
@@ -36,7 +77,15 @@ Con questo, il processo sarà completamente automatizzato.
 
 Nota: Se i runner vengono cancellati, dovrai aggiornare il percorso del nuovo runner nelle variabili, altrimenti la pipeline non funzionerà correttamente.
 
+
+
+
 #Pipeline
+
+
+
+
+
 Una volta avviata, la pipeline procederà a installare le VM. Se le VM sono già state installate, la pipeline effettuerà un controllo e passerà alla fase successiva.
 
 Successivamente, la pipeline costruirà l'immagine Docker utilizzando i file presenti nel repository del GitLab Runner Windows. L'immagine verrà buildata localmente e successivamente caricata su Docker Hub (docker push).
