@@ -30,6 +30,10 @@ app.config['MAIL_DEFAULT_SENDER'] = '90michela90@gmail.com'
 
 mail = Mail(app)
 
+# Variabili globali per gli indirizzi IP dei nodi e la porta
+NODE_IPS = ["172.31.177.20", "172.31.177.30", "172.31.177.40"]
+PORT = 30413  # Porta che hai configurato nel NodePort
+
 def log_event(message):
     try:
         conn = mysql.connector.connect(**db_config)
@@ -156,7 +160,7 @@ def manager():
 @app.route('/dipendente')
 def dipendente():
     if 'loggedin' in session and session.get('role') == 'Dipendente':
-        return redirect('http://172.31.177.30:30413/home?email=' + session['email'])
+        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
@@ -315,7 +319,7 @@ def log_event(message, level='info'):
 def index():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to home page.')
-        return redirect('http://172.31.177.30:30413/home?email=' + session['email'])
+        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
@@ -323,7 +327,7 @@ def index():
 def register_redirect():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to register page.')
-        return redirect('http://172.31.177.30:30413/register?email=' + session['email'])
+        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
@@ -344,7 +348,7 @@ def info():
         
         # Reindirizza alla pagina con l'email come parametro se non già presente
         if request.args.get('email') != email:
-            return redirect(f'http://172.31.177.30:30413/info?email={email}')
+            return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
         
         # Connessione al database per ottenere i dati del dipendente
         conn = mysql.connector.connect(**db_config)
