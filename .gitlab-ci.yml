@@ -36,7 +36,6 @@ push:
     # Push dell'immagine
     - docker push $DOCKER_IMAGE
     # Push del tag (opzionale)
-    - docker push $DOCKER_IMAGE:latest
     - docker logout
   tags:
     - windows
