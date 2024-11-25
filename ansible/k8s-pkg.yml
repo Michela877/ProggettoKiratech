@@ -132,6 +132,12 @@
         state: started
         enabled: true
 
+    - name: Installa Git
+      yum:
+        name: git
+        state: present
+        update_cache: true
+
     # Installare kubelet (versione compatibile)
     - name: Installa kubelet (versione 1.28.15)
       yum:
