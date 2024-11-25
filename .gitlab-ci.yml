@@ -24,7 +24,7 @@ build:
     # Build dell'immagine Docker con specifica del Dockerfile e del build context
     - docker build -t $DOCKER_IMAGE -f $DOCKERFILE_PATH $BUILD_CONTEXT
     # Tag dell'immagine (opzionale)
-    - docker logout >/dev/null 2>&1
+    - docker logout
   tags:
     - windows  # Assicurati che il runner con Docker locale abbia questo tag
 
@@ -37,7 +37,7 @@ push:
     - docker push $DOCKER_IMAGE
     # Push del tag (opzionale)
     - docker push $DOCKER_IMAGE:latest
-    - docker logout >/dev/null 2>&1
+    - docker logout
   tags:
     - windows
 
