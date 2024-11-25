@@ -7,7 +7,7 @@
 Questo repository eseguirà il provisioning di un cluster Kubernetes composto da un nodo manager, un nodo master e due nodi worker per il deployment di un'applicazione.
 
 
-**Nota: ho utilizzato Hyper-v perche essendo gia nei file di sistema di windows la configurazione tramite shell è diretta e piu semplice rispetto ad altri rivali inoltre non ho usato terraform per un semplice fatto che richiedeva il collegamento a file non verificati come hashicorp e per questioni di sicurezza ho utilizzato uno script powershell. inoltre per quanto riguarda il benchmark di security ho selezionato kube bench essendo il piu generico utilizzato per fare i test sulla sicurezza **
+**Nota: ho utilizzato Hyper-v perche essendo gia nei file di sistema di windows la configurazione tramite shell è diretta e piu semplice rispetto ad altri rivali inoltre non ho usato terraform per un semplice fatto che richiedeva il collegamento a file non verificati come hashicorp e per questioni di sicurezza ho utilizzato uno script powershell. inoltre per quanto riguarda il benchmark di security ho selezionato kube bench essendo il piu generico utilizzato per fare i test sulla sicurezza. Per quanto riguarda helm essendo un equivalente della comandlet kubectl per deployare piu facilmente attraverso i pacchetti chars senza usare troppi comandi sono rimasto con la comandlet di kubectl essendo riuscito a fare la stessa identica cosa. per quanto riguarda l'applicativo ho utilizzato un mio applicativo creato da me che utilizza 3 servizi il primo l'applicativo web il secondo il server mysql e il terzo una simulazione di esame sempre tramite web **
 
 
 
