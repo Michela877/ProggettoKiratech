@@ -19,6 +19,7 @@ powershell:
 build:
   stage: build
   script:
+    - pwd
     # Login a Docker Hub
     - echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
     # Build dell'immagine Docker
