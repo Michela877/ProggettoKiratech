@@ -101,7 +101,7 @@ ansible:
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-workers.yml
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-deployment.yml
   tags:
-    - centos9
+    - centos
 
 
 build:
