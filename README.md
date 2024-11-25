@@ -7,6 +7,8 @@
 Questo repository eseguirà il provisioning di un cluster Kubernetes composto da un nodo manager, un nodo master e due nodi worker per il deployment di un'applicazione.
 
 
+**Nota: ho utilizzato Hyper-v perche essendo gia nei file di sistema di windows la configurazione tramite shell è diretta e piu semplice rispetto ad altri rivali inoltre non ho usato terraform per un semplice fatto che richiedeva il collegamento a file non verificati come hashicorp e per questioni di sicurezza ho utilizzato uno script powershell. inoltre per quanto riguarda il benchmark di security ho selezionato kube bench essendo il piu generico utilizzato per fare i test sulla sicurezza **
+
 
 
 #GitLab Runner su Windows (Configurazione Manuale)
@@ -16,6 +18,8 @@ Questo repository eseguirà il provisioning di un cluster Kubernetes composto da
 
 
 Il primo passo consiste nel configurare il GitLab Runner sul sistema operativo desiderato. Assicurati che siano abilitati e installati Hyper-V e Docker, in modo da poter eseguire lo script che creerà le VM necessarie.
+
+
 
 
 
