@@ -89,6 +89,32 @@
         enabled: yes
       when: node_status.stdout != "Ready"
 
+    # Scarica Helm
+    - name: Download Helm binary
+      get_url:
+        url: "https://get.helm.sh/helm-v3.13.0-linux-amd64.tar.gz"
+        dest: /tmp/helm-v3.13.0-linux-amd64.tar.gz
+
+    # Estrai Helm
+    - name: Extract Helm binary
+      shell: tar -xvf /tmp/helm-v3.13.0-linux-amd64.tar.gz -C /tmp
+      args:
+        creates: /tmp/linux-amd64/helm
+
+    # Sposta Helm in /usr/local/bin
+    - name: Move Helm binary to /usr/local/bin
+      copy:
+        src: /tmp/linux-amd64/helm
+        dest: /usr/local/bin/helm
+        mode: '0755'
+
+    # Verifica installazione Helm
+    - name: Verify Helm installation
+      command: helm version
+      register: helm_version
+    - debug:
+        msg: "Helm installed successfully: {{ helm_version.stdout }}"
+
 
     # Scarica il file tar di Kube-Bench
     - name: Download Kube-Bench tar file
