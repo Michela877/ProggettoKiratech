@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gestione Presenze</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles1.css') }}">
+</head>
+<body>
+    <header>
+        <div class="header-content">
+            <h1 class="header-title">Gestione Presenze</h1>
+            <div class="button-container">
+                <a href="/" class="button">Presenze</a>
+                <a href="/info" class="button">Dettagli</a>
+                <a href="{{ url_for('logout') }}" class="welcome-button">
+                    <span>{{ email }}</span> Logout
+                </a>
+            </div>
+        </div>
+    </header>
+
+	<div class="container">
+		<div class="form-container">
+        <section>
+            <center><h2>Dettagli Dipendente</h2></center>
+            <p><strong>Nome:</strong> {{ dipendente.nome }} {{ dipendente.cognome }}</p>
+            <p><strong>Sesso:</strong> {{ dipendente.sesso }}</p>
+            <p><strong>Codice Fiscale:</strong> {{ dipendente.cod_fisc }}</p>
+            <p><strong>Data di Nascita:</strong> {{ dipendente.data_nascita }}</p>
+            <p><strong>Città:</strong> {{ dipendente.citta }}</p>
+            <p><strong>Provincia:</strong> {{ dipendente.provincia }}</p>
+            <p><strong>Indirizzo:</strong> {{ dipendente.via }}</p>
+            <p><strong>Email:</strong> {{ dipendente.email }}</p>
+            <p><strong>Telefono 1:</strong> {{ dipendente.telefono1 }}</p>
+            <p><strong>Telefono 2:</strong> {{ dipendente.telefono2 }}</p>
+            <p><strong>Tipologia Contratto:</strong> {{ dipendente.tipologia_contratto }}</p>
+            <p><strong>Data Assunzione:</strong> {{ dipendente.data_assunzione }}</p>
+            <p><strong>Scadenza Contratto:</strong> {{ dipendente.scadenza_contratto }}</p>
+            <p><strong>Ruolo:</strong> {{ dipendente.ruolo }}</p>
+            <p><strong>Stipendio:</strong> €{{ dipendente.stipendio }}</p>
+            <p><strong>Reparto:</strong> {{ dipendente.reparto }}</p>
+            <p><strong>Competenze:</strong> {{ dipendente.competenze }}</p>
+            <p><strong>Descrizione Competenze:</strong> {{ dipendente.descr_competenze }}</p>
+            <p><strong>Sede Azienda:</strong> {{ dipendente.sede_azienda }}</p>
+        </section>
+		</div>
+
+</body>
+</html>
