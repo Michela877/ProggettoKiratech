@@ -111,7 +111,7 @@
 
     # Verifica installazione Helm
     - name: Verify Helm installation
-      command: helm version
+      shell: "helm version"
       register: helm_version
     - debug:
         msg: "Helm installed successfully: {{ helm_version.stdout }}"
