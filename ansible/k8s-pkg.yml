@@ -188,3 +188,8 @@
     - name: Riavvia tutte le macchine
       reboot:
         reboot_timeout: 600
+
+    # Attendi 15 secondi
+    - name: Attendi 15 secondi per assicurarti che le macchine siano operative
+      pause:
+        seconds: 15
