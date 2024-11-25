@@ -152,7 +152,7 @@ def amministrazione():
 @app.route('/manager')
 def manager():
     if 'loggedin' in session and session.get('role') == 'Manager':
-        return redirect('http://192.168.178.120:10010/?email=' + session['email'])
+        return redirect('http://192.168.178.12:10010/?email=' + session['email'])
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
