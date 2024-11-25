@@ -156,7 +156,7 @@ def manager():
 @app.route('/dipendente')
 def dipendente():
     if 'loggedin' in session and session.get('role') == 'Dipendente':
-        return redirect('http://172.25.114.2:30413/home?email=' + session['email'])
+        return redirect('http://172.31.177.30:30413/home?email=' + session['email'])
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
@@ -315,7 +315,7 @@ def log_event(message, level='info'):
 def index():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to home page.')
-        return redirect('http://172.25.114.2:30413/home?email=' + session['email'])
+        return redirect('http://172.31.177.30:30413/home?email=' + session['email'])
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
@@ -323,7 +323,7 @@ def index():
 def register_redirect():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to register page.')
-        return redirect('http://172.25.114.2:30413/register?email=' + session['email'])
+        return redirect('http://172.31.177.30:30413/register?email=' + session['email'])
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
@@ -344,7 +344,7 @@ def info():
         
         # Reindirizza alla pagina con l'email come parametro se non già presente
         if request.args.get('email') != email:
-            return redirect(f'http://172.25.114.2:30413/info?email={email}')
+            return redirect(f'http://172.31.177.30:30413/info?email={email}')
         
         # Connessione al database per ottenere i dati del dipendente
         conn = mysql.connector.connect(**db_config)
