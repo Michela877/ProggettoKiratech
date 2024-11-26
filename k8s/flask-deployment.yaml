@@ -28,4 +28,4 @@ spec:
             - name: MYSQL_DATABASE
               value: "asset_management"
           ports:
-            - containerPort: 13000
+            - containerPort: 30413
