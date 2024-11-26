@@ -101,3 +101,41 @@ Successivamente, si avvierà la fase di Ansible, che installerà tutte le dipend
 Infine, l'applicazione verrà distribuita tramite Ansible utilizzando il file k8s.deployment, che recupererà le configurazioni dell'applicativo contenute nel repository del GitLab Runner. Creerà un namespace chiamato kyratech-prova e all'interno installerà i pod per l'applicazione Flask e il database MySQL, che saranno gestiti dal cluster Kubernetes.
 
 
+#variabili
+
+ANSIBLE_INVENTORY: inserire il path hosts per configurare kubernates in questo caso il hosts della cartella ansible finale /hosts
+ANSIBLE_PLAYBOOK_PATH: inserire il path della cartella ansible e basta
+POWERSHELL_SCRIPT_PATH: path della cartella powershell con finale /vmhyperv.ps1
+SSH_CONFIG_PATH: configurazione ssh dell' utente gitlab /home/gitlab-runner/.ssh/config
+SSH_KEY_PATH: configurazione ssh dell'utente gitlab chiave pubblica /home/gitlab-runner/.ssh/id_rsa
+SSH_PASS: password delle macchine virutali
+
+DOCKERFILE_PATH: "./path/to/Dockerfile"          # Percorso del Dockerfile
+BUILD_CONTEXT: "./path/to/build-context"         # Percorso della build context
+DOCKER_IMAGE: "username/repository-name"         # Nome dell'immagine Docker
+DOCKER_PASSWORD
+DOCKER_USERNAME
+
+DOCKERFILE_PATH: "./docker-app/Dockerfile"
+BUILD_CONTEXT: "./docker-app"
+
+
+Variabili configurate
+DOCKERFILE_PATH:
+
+Dovrebbe puntare direttamente al file Dockerfile.
+Esempio: ./logingestionele/Dockerfile.
+BUILD_CONTEXT:
+
+Dovrebbe essere il percorso della directory che contiene il contesto di build (i file necessari).
+Esempio: ./logingestionele.
+DOCKER_IMAGE:
+
+Il nome completo per l'immagine Docker, che include il namespace/repository e il tag.
+Esempio: username/logingestionele:latest.
+DOCKER_USERNAME e DOCKER_PASSWORD:
+
+Le credenziali Docker per effettuare il docker login e pubblicare l'immagine sul registro Docker.
+
+docker build -t username/logingestionele:latest -f ./logingestionele/Dockerfile ./logingestionele
+
