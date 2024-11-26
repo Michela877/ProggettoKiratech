@@ -189,3 +189,14 @@ data:
         cognome varchar(30),
         punteggio int
     );
+    -- New SQL Statements for az900
+    CREATE DATABASE IF NOT EXISTS az900;
+
+    USE az900;
+
+    CREATE TABLE IF NOT EXISTS esame (
+        id INT PRIMARY KEY AUTO_INCREMENT,
+        nome VARCHAR(30),
+        cognome VARCHAR(30),
+        punteggio INT
+    );
