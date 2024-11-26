@@ -28,4 +28,4 @@ spec:
             - name: MYSQL_DATABASE
               value: "az900"
           ports:
-            - containerPort: 13000
+            - containerPort: 21000
