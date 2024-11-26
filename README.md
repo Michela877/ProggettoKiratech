@@ -111,31 +111,12 @@ SSH_KEY_PATH: configurazione ssh dell'utente gitlab chiave pubblica /home/gitlab
 SSH_PASS: password delle macchine virutali
 
 DOCKERFILE_PATH: "./path/to/Dockerfile"          # Percorso del Dockerfile
-BUILD_CONTEXT: "./path/to/build-context"         # Percorso della build context
-DOCKER_IMAGE: "username/repository-name"         # Nome dell'immagine Docker
+BUILD_CONTEXT: "./path/to/build-context/logingestionele"         # Percorso della build context
+DOCKER_IMAGE: "usernameDockerhub/repository-name"         # Nome dell'immagine Docker
 DOCKER_PASSWORD
 DOCKER_USERNAME
 
-DOCKERFILE_PATH: "./docker-app/Dockerfile"
-BUILD_CONTEXT: "./docker-app"
 
 
-Variabili configurate
-DOCKERFILE_PATH:
-
-Dovrebbe puntare direttamente al file Dockerfile.
-Esempio: ./logingestionele/Dockerfile.
-BUILD_CONTEXT:
-
-Dovrebbe essere il percorso della directory che contiene il contesto di build (i file necessari).
-Esempio: ./logingestionele.
-DOCKER_IMAGE:
-
-Il nome completo per l'immagine Docker, che include il namespace/repository e il tag.
-Esempio: username/logingestionele:latest.
-DOCKER_USERNAME e DOCKER_PASSWORD:
-
-Le credenziali Docker per effettuare il docker login e pubblicare l'immagine sul registro Docker.
-
-docker build -t username/logingestionele:latest -f ./logingestionele/Dockerfile ./logingestionele
+docker build -t username/logingestionele:latest -f ./pathassolutodockerfile/Dockerfile ./pathassolutodirectory/logingestionale
 
