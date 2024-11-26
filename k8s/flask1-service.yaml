@@ -1,0 +1,15 @@
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: flask1-app-service
+  namespace: kyratech-prova
+spec:
+  selector:
+    app: flask1-app
+  ports:
+    - protocol: TCP
+      port: 2011
+      targetPort: 21000
+      nodePort: 30414
+  type: NodePort  # Usa NodePort per esporre il servizio all'esterno del cluster
