@@ -241,7 +241,7 @@ def home():
 
     if 'loggedin' in session:
         role = session.get('role')
-        
+
         # Controlla il ruolo e reindirizza l'utente di conseguenza
         if role == 'Admin':
             return redirect(url_for('admin'))
@@ -250,80 +250,84 @@ def home():
         elif role == 'Manager':
             return redirect(url_for('manager'))
         elif role == 'Dipendente':
-            conn = mysql.connector.connect(**db_config)
-            cursor = conn.cursor(dictionary=True)
-            
-            # Recupera le informazioni del dipendente
-            cursor.execute('SELECT id, nome, cognome FROM dipendenti WHERE email = %s', (session['email'],))
-            dipendente = cursor.fetchone()
+            try:
+                # Connessione al database
+                conn = mysql.connector.connect(**db_config)
+                cursor = conn.cursor(dictionary=True)
 
-        if dipendente:
-            dipendente_id = dipendente['id']
-            dipendente_nome = dipendente['nome']
-            dipendente_cognome = dipendente['cognome']
+                # Recupera le informazioni del dipendente
+                cursor.execute('SELECT id, nome, cognome FROM dipendenti WHERE email = %s', (session['email'],))
+                dipendente = cursor.fetchone()
 
-            query = '''
-                SELECT p.*, d.nome AS dipendente_nome, d.cognome AS dipendente_cognome,
-                       DATE_FORMAT(p.orario1_entrata, '%H:%i') AS orario1_entrata,
-                       DATE_FORMAT(p.orario1_uscita, '%H:%i') AS orario1_uscita,
-                       DATE_FORMAT(p.orario2_entrata, '%H:%i') AS orario2_entrata,
-                       DATE_FORMAT(p.orario2_uscita, '%H:%i') AS orario2_uscita,
-                       TIME_FORMAT(SEC_TO_TIME(
-                           TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) - COALESCE(p.orario_pausa * 60, 0)
-                       ), '%H:%i') AS totale_ore_mattina,
-                       TIME_FORMAT(SEC_TO_TIME(
-                           TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) +
-                           TIMESTAMPDIFF(SECOND, p.orario2_entrata, p.orario2_uscita) - COALESCE(p.orario_pausa * 60, 0)
-                       ), '%H:%i') AS totale_ore_giorno,
-                       TIME_FORMAT(p.totale_ore_straordinari, '%H:%i') AS totale_ore_straordinari,
-                       TIME_FORMAT(p.orario_inizio_straordinario, '%H:%i') AS straordinario_inizio,
-                       TIME_FORMAT(p.orario_fine_straordinario, '%H:%i') AS straordinario_fine
-                FROM presenze p
-                JOIN dipendenti d ON p.id = d.id
-                WHERE d.id = %s
-                ORDER BY p.data_presenza DESC
-            '''
+                if not dipendente:
+                    flash('Dipendente non trovato.', 'error')
+                    log_event(f"Dipendente non trovato per l'email: {session['email']}")
+                    return redirect(url_for('login'))
 
-            cursor.execute(query, (dipendente_id,))
-            presenze = cursor.fetchall()
+                dipendente_id = dipendente['id']
+                dipendente_nome = dipendente['nome']
+                dipendente_cognome = dipendente['cognome']
 
-            cursor.close()
-            conn.close()
+                # Query per ottenere le presenze
+                query = '''
+                    SELECT p.*, d.nome AS dipendente_nome, d.cognome AS dipendente_cognome,
+                           DATE_FORMAT(p.orario1_entrata, '%H:%i') AS orario1_entrata,
+                           DATE_FORMAT(p.orario1_uscita, '%H:%i') AS orario1_uscita,
+                           DATE_FORMAT(p.orario2_entrata, '%H:%i') AS orario2_entrata,
+                           DATE_FORMAT(p.orario2_uscita, '%H:%i') AS orario2_uscita,
+                           TIME_FORMAT(SEC_TO_TIME(
+                               TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) - COALESCE(p.orario_pausa * 60, 0)
+                           ), '%H:%i') AS totale_ore_mattina,
+                           TIME_FORMAT(SEC_TO_TIME(
+                               TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) +
+                               TIMESTAMPDIFF(SECOND, p.orario2_entrata, p.orario2_uscita) - COALESCE(p.orario_pausa * 60, 0)
+                           ), '%H:%i') AS totale_ore_giorno,
+                           TIME_FORMAT(p.totale_ore_straordinari, '%H:%i') AS totale_ore_straordinari,
+                           TIME_FORMAT(p.orario_inizio_straordinario, '%H:%i') AS straordinario_inizio,
+                           TIME_FORMAT(p.orario_fine_straordinario, '%H:%i') AS straordinario_fine
+                    FROM presenze p
+                    JOIN dipendenti d ON p.id = d.id
+                    WHERE d.id = %s
+                    ORDER BY p.data_presenza DESC
+                '''
 
+                cursor.execute(query, (dipendente_id,))
+                presenze = cursor.fetchall()
+
+            except mysql.connector.Error as err:
+                log_event(f"Errore nella connessione al database: {err}")
+                flash("Errore nella connessione al database. Riprova più tardi.", 'error')
+                return redirect(url_for('login'))
+            finally:
+                # Chiudi sempre la connessione al database
+                if cursor:
+                    cursor.close()
+                if conn:
+                    conn.close()
+
+            # Imposta i valori predefiniti per la pagina
             data_presenza = datetime.datetime.now().strftime('%Y-%m-%d')
             orario_entrata = datetime.datetime.now().strftime('%H:%M')
             orario_uscita = datetime.datetime.now().strftime('%H:%M')
 
-            return render_template('home.html', 
-                                   email=session['email'], 
-                                   data_presenza=data_presenza, 
-                                   orario_entrata=orario_entrata, 
-                                   orario_uscita=orario_uscita, 
-                                   presenze=presenze,
-                                   dipendente_nome=dipendente_nome,
-                                   dipendente_cognome=dipendente_cognome)
+            return render_template(
+                'home.html',
+                email=session['email'],
+                data_presenza=data_presenza,
+                orario_entrata=orario_entrata,
+                orario_uscita=orario_uscita,
+                presenze=presenze,
+                dipendente_nome=dipendente_nome,
+                dipendente_cognome=dipendente_cognome
+            )
         else:
-                flash('Dipendente non trovato.', 'error')
-                log_event(f"Dipendente non trovato per l'email: {session['email']}")
-                return redirect(url_for('login'))
-    else:
             flash('Ruolo non riconosciuto.', 'error')
             log_event(f"Ruolo non riconosciuto per l'email: {session['email']}")
             return redirect(url_for('login'))
-    return redirect(url_for('login'))
+    else:
+        log_event('Utente non loggato, reindirizzamento al login.')
+        return redirect(url_for('login'))
 
-def log_event(message, level='info'):
-    try:
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor()
-        timestamp = int(time.time())
-        full_message = f"{level.upper()}: {message}"
-        cursor.execute('INSERT INTO logs (timestamp, log) VALUES (%s, %s)', (timestamp, full_message))
-        conn.commit()
-        cursor.close()
-        conn.close()
-    except mysql.connector.Error as err:
-        print(f"Errore di connessione al database per il logging: {err}")
 
 
 @app.route('/')
