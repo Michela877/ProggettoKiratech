@@ -1,0 +1,31 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: flask1-deployment
+  namespace: kyratech-prova
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: flask1-app
+  template:
+    metadata:
+      labels:
+        app: flask1-app
+    spec:
+      containers:
+        - name: flask1-app
+          image: michela877/esame:latest  # Immagine Docker per l'app Flask
+          env:
+            - name: MYSQL_HOST
+              value: mysql-service
+            - name: MYSQL_PORT
+              value: "3306"
+            - name: MYSQL_USER
+              value: "root"
+            - name: MYSQL_PASSWORD
+              value: "my-secret-pw"
+            - name: MYSQL_DATABASE
+              value: "az900"
+          ports:
+            - containerPort: 13000
