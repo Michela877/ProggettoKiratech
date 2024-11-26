@@ -31,7 +31,7 @@ app.config['MAIL_DEFAULT_SENDER'] = '90michela90@gmail.com'
 mail = Mail(app)
 
 # Variabili globali per gli indirizzi IP dei nodi e la porta
-NODE_IPS = ["172.31.177.20", "172.31.177.30", "172.31.177.40"]
+NODE_IPS = ["172.31.177.30", "172.31.177.40"]
 PORT = 30413  # Porta che hai configurato nel NodePort
 
 def log_event(message):
@@ -160,10 +160,21 @@ def manager():
 @app.route('/dipendente')
 def dipendente():
     if 'loggedin' in session and session.get('role') == 'Dipendente':
-        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
+        for node_ip in NODE_IPS:  # Tenta ciascun nodo nell'elenco
+            try:
+                # Prova a redirigere al nodo corrente
+                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+            except Exception as e:
+                log_event(f"Errore connessione a {node_ip}:{PORT} per email {session['email']}: {str(e)}")
+        
+        flash('Impossibile connettersi ai nodi disponibili.')
+        log_event(f"Accesso fallito per l'email: {session.get('email')}. Nessun nodo raggiungibile.")
+        return redirect(url_for('login'))
+    
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
+
 
 
 # Registrazione nuovo dipendente
@@ -318,56 +329,92 @@ def log_event(message, level='info'):
 @app.route('/')
 def index():
     if 'loggedin' in session:
-        log_event('User is logged in, redirecting to home page.')
-        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
+        log_event('User is logged in, attempting to redirect to home page.')
+        for node_ip in NODE_IPS:
+            try:
+                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+            except Exception as e:
+                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
+        flash('Unable to connect to available nodes.')
+        log_event(f"Access failed for email: {session.get('email')}. No reachable nodes.")
+        return redirect(url_for('login'))
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
 @app.route('/register_redirect')
 def register_redirect():
     if 'loggedin' in session:
-        log_event('User is logged in, redirecting to register page.')
-        return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
+        log_event('User is logged in, attempting to redirect to register page.')
+        for node_ip in NODE_IPS:
+            try:
+                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+            except Exception as e:
+                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
+        flash('Unable to connect to available nodes.')
+        log_event(f"Access failed for email: {session.get('email')}. No reachable nodes.")
+        return redirect(url_for('login'))
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
+
 
 @app.route('/info')
 def info():
     # Controlla se l'utente è loggato
     if 'loggedin' in session:
-        log_event('User is logged in, redirecting to info page.')
+        log_event('User is logged in, attempting to redirect to info page.')
         email = session.get('email') or request.args.get('email')
 
         # Controlla se l'email è presente, altrimenti reindirizza alla pagina di login
         if not email:
             flash('Email non fornita.')
+            log_event('Email not provided, redirecting to login.')
             return redirect(url_for('login'))
         
         # Se l'email è solo nella richiesta, la salva nella sessione
         session['email'] = email
-        
-        # Reindirizza alla pagina con l'email come parametro se non già presente
-        if request.args.get('email') != email:
-            return redirect(f'http://{NODE_IPS[0]}:{PORT}/home?email=' + session['email'])
+
+        # Prova a reindirizzare alla home usando i nodi disponibili
+        for node_ip in NODE_IPS:
+            try:
+                if request.args.get('email') != email:
+                    return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+            except Exception as e:
+                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
+
+        # Se nessun nodo è raggiungibile, mostra un messaggio di errore
+        flash('Unable to connect to available nodes.')
+        log_event(f"Access failed for email: {email}. No reachable nodes.")
+        return redirect(url_for('login'))
         
         # Connessione al database per ottenere i dati del dipendente
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
-        dipendente = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
+            dipendente = cursor.fetchone()
+        except mysql.connector.Error as err:
+            log_event(f"Database error: {str(err)}")
+            flash("Errore nella connessione al database.")
+            return redirect(url_for('login'))
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
         # Se i dati del dipendente sono trovati, visualizzali
         if dipendente:
+            log_event(f'Data for email {email} retrieved successfully.')
             return render_template('info.html', dipendente=dipendente, email=email)
         else:
             flash('Dipendente non trovato.')
+            log_event(f'Dipendente not found for email: {email}')
             return redirect('/')
+    else:
+        # Se l'utente non è loggato, reindirizza alla pagina di login
+        log_event('User not logged in, redirecting to login.')
+        return redirect(url_for('login'))
 
-    # Se l'utente non è loggato, reindirizza alla pagina di login
-    log_event('User not logged in, rendering login page.')
-    return redirect(url_for('login'))
 
 
 
