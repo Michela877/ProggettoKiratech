@@ -15,7 +15,7 @@ spec:
     spec:
       containers:
         - name: flask1-app
-          image: michela877/esame:latest  # Immagine Docker per l'app Flask
+          image: michela877/esame1:latest  # Immagine Docker per l'app Flask
           env:
             - name: MYSQL_HOST
               value: mysql-service
