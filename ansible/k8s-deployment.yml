@@ -82,6 +82,10 @@
       command: kubectl apply -f /tmp/automazione/k8s/flask-deployment.yaml -n kyratech-prova
       register: flask_deployment_result
 
+    - name: Deploy Flask Deployment
+      command: kubectl apply -f /tmp/automazione/k8s/flask1-deployment.yaml -n kyratech-prova
+      register: flask1_deployment_result
+
     - name: Mostrare il risultato del Deployment Flask
       debug:
         var: flask_deployment_result
@@ -89,6 +93,10 @@
     - name: Deploy Flask Service
       command: kubectl apply -f /tmp/automazione/k8s/flask-service.yaml -n kyratech-prova
       register: flask_service_result
+
+    - name: Deploy Flask Service
+      command: kubectl apply -f /tmp/automazione/k8s/flask1-service.yaml -n kyratech-prova
+      register: flask1_service_result
 
     - name: Mostrare il risultato del Service Flask
       debug:
