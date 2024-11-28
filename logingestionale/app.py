@@ -7,6 +7,7 @@ import os
 import datetime
 import time
 import re
+import random
 
 app = Flask(__name__)
 app.secret_key = 'il_tuo_segreto'
