@@ -27,22 +27,6 @@
       debug:
         var: git_clone_result
 
-    - name: Eliminare i Pod esistenti per MySQL
-      command: kubectl delete pod -l app=mysql -n kyratech-prova --ignore-not-found
-      register: delete_mysql_pods_result
-
-    - name: Mostrare il risultato dell'eliminazione dei Pod MySQL
-      debug:
-        var: delete_mysql_pods_result
-
-    - name: Eliminare i Pod esistenti per Flask
-      command: kubectl delete pod -l app=flask-app -n kyratech-prova --ignore-not-found
-      register: delete_flask_pods_result
-
-    - name: Mostrare il risultato dell'eliminazione dei Pod Flask
-      debug:
-        var: delete_flask_pods_result
-
     - name: Deploy Persistent Volume Claim per MySQL
       command: kubectl apply -f /tmp/automazione/k8s/mysql-pvc.yaml -n kyratech-prova
       register: pvc_result
@@ -123,10 +107,10 @@
       debug:
         var: flask_wait_result
 
-    - name: Installare Flask App con Helm
-      command: helm install flask-app /tmp/automazione/flask-app -n kiratech-test
-      register: helm_install_result
+    - name: Installare o aggiornare Flask App con Helm
+      command: helm upgrade --install flask-app /tmp/automazione/flask-app -n kiratech-test
+      register: helm_install_or_upgrade_result
 
-    - name: Mostrare il risultato dell'installazione di Flask App con Helm
+    - name: Mostrare il risultato dell'installazione o dell'upgrade di Flask App con Helm
       debug:
-        var: helm_install_result
+        var: helm_install_or_upgrade_result
