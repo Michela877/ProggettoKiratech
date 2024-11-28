@@ -30,9 +30,7 @@ app.config['MAIL_DEFAULT_SENDER'] = '90michela90@gmail.com'
 
 mail = Mail(app)
 
-# Variabili globali per gli indirizzi IP dei nodi e la porta
-NODE_IPS = ["192.168.178.133", "192.168.178.134"]
-PORT = 30413  # Porta che hai configurato nel NodePort
+
 
 def log_event(message):
     try:
@@ -152,7 +150,7 @@ def amministrazione():
 @app.route('/manager')
 def manager():
     if 'loggedin' in session and session.get('role') == 'Manager':
-        return redirect('http://192.168.178.12:10010/?email=' + session['email'])
+        return redirect('http://192.168.178.120:10010/?email=' + session['email'])
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
@@ -160,21 +158,10 @@ def manager():
 @app.route('/dipendente')
 def dipendente():
     if 'loggedin' in session and session.get('role') == 'Dipendente':
-        for node_ip in NODE_IPS:  # Tenta ciascun nodo nell'elenco
-            try:
-                # Prova a redirigere al nodo corrente
-                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
-            except Exception as e:
-                log_event(f"Errore connessione a {node_ip}:{PORT} per email {session['email']}: {str(e)}")
-        
-        flash('Impossibile connettersi ai nodi disponibili.')
-        log_event(f"Accesso fallito per l'email: {session.get('email')}. Nessun nodo raggiungibile.")
-        return redirect(url_for('login'))
-    
+        return redirect(url_for('home'))
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
     return redirect(url_for('login'))
-
 
 
 # Registrazione nuovo dipendente
@@ -241,7 +228,7 @@ def home():
 
     if 'loggedin' in session:
         role = session.get('role')
-
+        
         # Controlla il ruolo e reindirizza l'utente di conseguenza
         if role == 'Admin':
             return redirect(url_for('admin'))
@@ -250,175 +237,135 @@ def home():
         elif role == 'Manager':
             return redirect(url_for('manager'))
         elif role == 'Dipendente':
-            try:
-                # Connessione al database
-                conn = mysql.connector.connect(**db_config)
-                cursor = conn.cursor(dictionary=True)
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            
+            # Recupera le informazioni del dipendente
+            cursor.execute('SELECT id, nome, cognome FROM dipendenti WHERE email = %s', (session['email'],))
+            dipendente = cursor.fetchone()
 
-                # Recupera le informazioni del dipendente
-                cursor.execute('SELECT id, nome, cognome FROM dipendenti WHERE email = %s', (session['email'],))
-                dipendente = cursor.fetchone()
+        if dipendente:
+            dipendente_id = dipendente['id']
+            dipendente_nome = dipendente['nome']
+            dipendente_cognome = dipendente['cognome']
 
-                if not dipendente:
-                    flash('Dipendente non trovato.', 'error')
-                    log_event(f"Dipendente non trovato per l'email: {session['email']}")
-                    return redirect(url_for('login'))
+            query = '''
+                SELECT p.*, d.nome AS dipendente_nome, d.cognome AS dipendente_cognome,
+                       DATE_FORMAT(p.orario1_entrata, '%H:%i') AS orario1_entrata,
+                       DATE_FORMAT(p.orario1_uscita, '%H:%i') AS orario1_uscita,
+                       DATE_FORMAT(p.orario2_entrata, '%H:%i') AS orario2_entrata,
+                       DATE_FORMAT(p.orario2_uscita, '%H:%i') AS orario2_uscita,
+                       TIME_FORMAT(SEC_TO_TIME(
+                           TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) - COALESCE(p.orario_pausa * 60, 0)
+                       ), '%H:%i') AS totale_ore_mattina,
+                       TIME_FORMAT(SEC_TO_TIME(
+                           TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) +
+                           TIMESTAMPDIFF(SECOND, p.orario2_entrata, p.orario2_uscita) - COALESCE(p.orario_pausa * 60, 0)
+                       ), '%H:%i') AS totale_ore_giorno,
+                       TIME_FORMAT(p.totale_ore_straordinari, '%H:%i') AS totale_ore_straordinari,
+                       TIME_FORMAT(p.orario_inizio_straordinario, '%H:%i') AS straordinario_inizio,
+                       TIME_FORMAT(p.orario_fine_straordinario, '%H:%i') AS straordinario_fine
+                FROM presenze p
+                JOIN dipendenti d ON p.id = d.id
+                WHERE d.id = %s
+                ORDER BY p.data_presenza DESC
+            '''
 
-                dipendente_id = dipendente['id']
-                dipendente_nome = dipendente['nome']
-                dipendente_cognome = dipendente['cognome']
+            cursor.execute(query, (dipendente_id,))
+            presenze = cursor.fetchall()
 
-                # Query per ottenere le presenze
-                query = '''
-                    SELECT p.*, d.nome AS dipendente_nome, d.cognome AS dipendente_cognome,
-                           DATE_FORMAT(p.orario1_entrata, '%H:%i') AS orario1_entrata,
-                           DATE_FORMAT(p.orario1_uscita, '%H:%i') AS orario1_uscita,
-                           DATE_FORMAT(p.orario2_entrata, '%H:%i') AS orario2_entrata,
-                           DATE_FORMAT(p.orario2_uscita, '%H:%i') AS orario2_uscita,
-                           TIME_FORMAT(SEC_TO_TIME(
-                               TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) - COALESCE(p.orario_pausa * 60, 0)
-                           ), '%H:%i') AS totale_ore_mattina,
-                           TIME_FORMAT(SEC_TO_TIME(
-                               TIMESTAMPDIFF(SECOND, p.orario1_entrata, p.orario1_uscita) +
-                               TIMESTAMPDIFF(SECOND, p.orario2_entrata, p.orario2_uscita) - COALESCE(p.orario_pausa * 60, 0)
-                           ), '%H:%i') AS totale_ore_giorno,
-                           TIME_FORMAT(p.totale_ore_straordinari, '%H:%i') AS totale_ore_straordinari,
-                           TIME_FORMAT(p.orario_inizio_straordinario, '%H:%i') AS straordinario_inizio,
-                           TIME_FORMAT(p.orario_fine_straordinario, '%H:%i') AS straordinario_fine
-                    FROM presenze p
-                    JOIN dipendenti d ON p.id = d.id
-                    WHERE d.id = %s
-                    ORDER BY p.data_presenza DESC
-                '''
+            cursor.close()
+            conn.close()
 
-                cursor.execute(query, (dipendente_id,))
-                presenze = cursor.fetchall()
-
-            except mysql.connector.Error as err:
-                log_event(f"Errore nella connessione al database: {err}")
-                flash("Errore nella connessione al database. Riprova più tardi.", 'error')
-                return redirect(url_for('login'))
-            finally:
-                # Chiudi sempre la connessione al database
-                if cursor:
-                    cursor.close()
-                if conn:
-                    conn.close()
-
-            # Imposta i valori predefiniti per la pagina
             data_presenza = datetime.datetime.now().strftime('%Y-%m-%d')
             orario_entrata = datetime.datetime.now().strftime('%H:%M')
             orario_uscita = datetime.datetime.now().strftime('%H:%M')
 
-            return render_template(
-                'home.html',
-                email=session['email'],
-                data_presenza=data_presenza,
-                orario_entrata=orario_entrata,
-                orario_uscita=orario_uscita,
-                presenze=presenze,
-                dipendente_nome=dipendente_nome,
-                dipendente_cognome=dipendente_cognome
-            )
+            return render_template('home.html', 
+                                   email=session['email'], 
+                                   data_presenza=data_presenza, 
+                                   orario_entrata=orario_entrata, 
+                                   orario_uscita=orario_uscita, 
+                                   presenze=presenze,
+                                   dipendente_nome=dipendente_nome,
+                                   dipendente_cognome=dipendente_cognome)
         else:
+                flash('Dipendente non trovato.', 'error')
+                log_event(f"Dipendente non trovato per l'email: {session['email']}")
+                return redirect(url_for('login'))
+    else:
             flash('Ruolo non riconosciuto.', 'error')
             log_event(f"Ruolo non riconosciuto per l'email: {session['email']}")
             return redirect(url_for('login'))
-    else:
-        log_event('Utente non loggato, reindirizzamento al login.')
-        return redirect(url_for('login'))
+    return redirect(url_for('login'))
 
+def log_event(message, level='info'):
+    try:
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor()
+        timestamp = int(time.time())
+        full_message = f"{level.upper()}: {message}"
+        cursor.execute('INSERT INTO logs (timestamp, log) VALUES (%s, %s)', (timestamp, full_message))
+        conn.commit()
+        cursor.close()
+        conn.close()
+    except mysql.connector.Error as err:
+        print(f"Errore di connessione al database per il logging: {err}")
 
 
 @app.route('/')
 def index():
     if 'loggedin' in session:
-        log_event('User is logged in, attempting to redirect to home page.')
-        for node_ip in NODE_IPS:
-            try:
-                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
-            except Exception as e:
-                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
-        flash('Unable to connect to available nodes.')
-        log_event(f"Access failed for email: {session.get('email')}. No reachable nodes.")
-        return redirect(url_for('login'))
+        log_event('User is logged in, redirecting to home page.')
+        return redirect(url_for('home'))
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
 
 @app.route('/register_redirect')
 def register_redirect():
     if 'loggedin' in session:
-        log_event('User is logged in, attempting to redirect to register page.')
-        for node_ip in NODE_IPS:
-            try:
-                return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
-            except Exception as e:
-                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
-        flash('Unable to connect to available nodes.')
-        log_event(f"Access failed for email: {session.get('email')}. No reachable nodes.")
-        return redirect(url_for('login'))
+        log_event('User is logged in, redirecting to register page.')
+        return redirect(url_for('register'))
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
-
 
 @app.route('/info')
 def info():
     # Controlla se l'utente è loggato
     if 'loggedin' in session:
-        log_event('User is logged in, attempting to redirect to info page.')
+        log_event('User is logged in, redirecting to info page.')
         email = session.get('email') or request.args.get('email')
 
         # Controlla se l'email è presente, altrimenti reindirizza alla pagina di login
         if not email:
             flash('Email non fornita.')
-            log_event('Email not provided, redirecting to login.')
             return redirect(url_for('login'))
         
         # Se l'email è solo nella richiesta, la salva nella sessione
         session['email'] = email
-
-        # Prova a reindirizzare alla home usando i nodi disponibili
-        for node_ip in NODE_IPS:
-            try:
-                if request.args.get('email') != email:
-                    return redirect(f'http://{node_ip}:{PORT}/info?email=' + session['email'])
-            except Exception as e:
-                log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
-
-        # Se nessun nodo è raggiungibile, mostra un messaggio di errore
-        flash('Unable to connect to available nodes.')
-        log_event(f"Access failed for email: {email}. No reachable nodes.")
-        return redirect(url_for('login'))
+        
+        # Reindirizza alla pagina con l'email come parametro se non già presente
+        if request.args.get('email') != email:
+            return redirect(url_for('info'))
         
         # Connessione al database per ottenere i dati del dipendente
-        try:
-            conn = mysql.connector.connect(**db_config)
-            cursor = conn.cursor(dictionary=True)
-            cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
-            dipendente = cursor.fetchone()
-        except mysql.connector.Error as err:
-            log_event(f"Database error: {str(err)}")
-            flash("Errore nella connessione al database.")
-            return redirect(url_for('login'))
-        finally:
-            if cursor:
-                cursor.close()
-            if conn:
-                conn.close()
+        conn = mysql.connector.connect(**db_config)
+        cursor = conn.cursor(dictionary=True)
+        cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
+        dipendente = cursor.fetchone()
+        cursor.close()
+        conn.close()
 
         # Se i dati del dipendente sono trovati, visualizzali
         if dipendente:
-            log_event(f'Data for email {email} retrieved successfully.')
             return render_template('info.html', dipendente=dipendente, email=email)
         else:
             flash('Dipendente non trovato.')
-            log_event(f'Dipendente not found for email: {email}')
             return redirect('/')
-    else:
-        # Se l'utente non è loggato, reindirizza alla pagina di login
-        log_event('User not logged in, redirecting to login.')
-        return redirect(url_for('login'))
 
+    # Se l'utente non è loggato, reindirizza alla pagina di login
+    log_event('User not logged in, rendering login page.')
+    return redirect(url_for('login'))
 
 
 
