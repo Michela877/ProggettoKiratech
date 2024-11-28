@@ -126,7 +126,17 @@ def verify_otp():
             session.pop('email_temp', None)
             session.pop('role_temp', None)
             log_event(f"Accesso effettuato per l'email: {session['email']}")
-            return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+
+            for node_ip in NODE_IPS:  # Assicurati che NODE_IPS sia definita altrove
+                try:
+                    # Prova a fare il redirect al primo nodo disponibile
+                    return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+                except Exception as e:
+                    log_event(f"Errore connessione a {node_ip}:{PORT} per email {session['email']}: {str(e)}")
+
+            flash('Impossibile connettersi ai nodi disponibili.')
+            log_event(f"Accesso fallito per l'email: {session.get('email')}. Nessun nodo raggiungibile.")
+            return redirect(url_for('login'))
         else:
             msg = 'Codice OTP non valido, riprova.'
             log_event("Codice OTP non valido.")
