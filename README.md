@@ -13,7 +13,7 @@ Questo repository eseguirà il provisioning di un cluster Kubernetes composto da
 
 #GitLab Runner su Windows (Configurazione Manuale)
 
-
+a
 
 
 
