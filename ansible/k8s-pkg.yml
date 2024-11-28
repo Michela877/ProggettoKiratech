@@ -1,31 +1,6 @@
 - hosts: all
   become: yes
   tasks:
-    # Rimuovi versioni esistenti di Docker, containerd, kubelet, kubeadm
-    - name: Rimuovere Docker se presente
-      yum:
-        name: docker
-        state: absent
-
-    - name: Rimuovere Kubectl se presente
-      yum:
-        name: kubectl
-        state: absent
-
-    - name: Rimuovere containerd se presente
-      yum:
-        name: containerd.io
-        state: absent
-
-    - name: Rimuovere kubelet se presente
-      yum:
-        name: kubelet
-        state: absent
-
-    - name: Rimuovere kubeadm se presente
-      yum:
-        name: kubeadm
-        state: absent
 
     # Disabilitare il firewall
     - name: Disabilitare il firewall
