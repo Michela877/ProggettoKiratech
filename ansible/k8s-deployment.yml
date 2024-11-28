@@ -6,6 +6,11 @@
       ignore_errors: yes  # Ignora l'errore se il namespace esiste già
       register: namespace_result
 
+    - name: Creare o aggiornare il namespace kyratech-prova
+      command: kubectl create namespace kiratech-test
+      ignore_errors: yes  # Ignora l'errore se il namespace esiste già
+      register: namespace_result
+
     - name: Mostrare il risultato della creazione del namespace
       debug:
         var: namespace_result
@@ -117,3 +122,11 @@
     - name: Mostrare lo stato del pod Flask
       debug:
         var: flask_wait_result
+
+    - name: Installare Flask App con Helm
+      command: helm install flask-app /tmp/automazione/flask-app -n kiratech-test
+      register: helm_install_result
+
+    - name: Mostrare il risultato dell'installazione di Flask App con Helm
+      debug:
+        var: helm_install_result
