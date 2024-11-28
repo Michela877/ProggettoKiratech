@@ -13,7 +13,7 @@ app.secret_key = 'il_tuo_segreto'
 
 # Configurazione del database MySQL
 db_config = {
-    'host': os.getenv('MYSQL_HOST', '172.31.177.30'),
+    'host': os.getenv('MYSQL_HOST', '192.168.178.133'),
     'port': os.getenv('MYSQL_PORT', '3306'),
     'user': os.getenv('MYSQL_USER', 'root'),
     'password': os.getenv('MYSQL_PASSWORD', 'my-secret-pw'),
@@ -31,7 +31,7 @@ app.config['MAIL_DEFAULT_SENDER'] = '90michela90@gmail.com'
 mail = Mail(app)
 
 # Variabili globali per gli indirizzi IP dei nodi e la porta
-NODE_IPS = ["172.31.177.30", "172.31.177.40"]
+NODE_IPS = ["192.168.178.133", "192.168.178.134"]
 PORT = 30413  # Porta che hai configurato nel NodePort
 
 def log_event(message):
