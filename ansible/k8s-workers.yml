@@ -23,6 +23,10 @@
         state: absent
       when: ansible_facts['distribution'] == "CentOS"  # aggiungi la condizione per il tuo sistema operativo, se necessario
 
+    - name: Pause for 30 seconds to ensure kubeadm reset completes
+      pause:
+        seconds: 60
+
     - name: join cluster again
       shell: "{{ hostvars['master.example.com'].join_command }} --ignore-preflight-errors all >> {{ ansible_env.HOME }}/node_joined.txt"
       args:
