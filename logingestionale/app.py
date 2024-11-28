@@ -341,31 +341,37 @@ def info():
             flash('Email non fornita.')
             return redirect(url_for('login'))
         
-        # Se l'email è solo nella richiesta, la salva nella sessione
-        session['email'] = email
-        
-        # Reindirizza alla pagina con l'email come parametro se non già presente
+        # Se l'email è solo nella sessione e non nei parametri, reindirizza aggiungendola
         if request.args.get('email') != email:
-            return redirect(url_for('info'))
+            return redirect(url_for('info', email=email))  # Passa l'email nella query string
         
         # Connessione al database per ottenere i dati del dipendente
-        conn = mysql.connector.connect(**db_config)
-        cursor = conn.cursor(dictionary=True)
-        cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
-        dipendente = cursor.fetchone()
-        cursor.close()
-        conn.close()
+        try:
+            conn = mysql.connector.connect(**db_config)
+            cursor = conn.cursor(dictionary=True)
+            cursor.execute('SELECT * FROM dipendenti WHERE email = %s', (email,))
+            dipendente = cursor.fetchone()
+        except mysql.connector.Error as err:
+            log_event(f"Database error: {err}")
+            flash("Errore durante l'accesso al database.")
+            return redirect(url_for('login'))
+        finally:
+            if cursor:
+                cursor.close()
+            if conn:
+                conn.close()
 
         # Se i dati del dipendente sono trovati, visualizzali
         if dipendente:
             return render_template('info.html', dipendente=dipendente, email=email)
         else:
             flash('Dipendente non trovato.')
-            return redirect('/')
+            return redirect(url_for('home'))  # Evita di tornare a "/"
 
     # Se l'utente non è loggato, reindirizza alla pagina di login
     log_event('User not logged in, rendering login page.')
     return redirect(url_for('login'))
+
 
 
 
