@@ -13,29 +13,28 @@
 - hosts: workers
   become: yes
   tasks:
-    - name: Check if node is already part of the cluster and if it is ready
-      shell: kubectl get nodes {{ inventory_hostname }} --no-headers | awk '{ print $2 }'
+    - name: Check if node is already part of the cluster
+      shell: kubectl get nodes {{ inventory_hostname }} --no-headers
       register: node_status
-      ignore_errors: yes
+      ignore_errors: true
 
-    - name: Skip join if node is already ready
+    - name: Skip join if node is already part of the cluster
       debug:
-        msg: "Node {{ inventory_hostname }} is already Ready. Skipping join."
-      when: node_status.stdout == "Ready"
-      ignore_errors: yes
+        msg: "Node {{ inventory_hostname }} is already part of the cluster."
+      when: node_status.rc == 0
 
     - name: Reset kubeadm to remove the node from the cluster
       shell: kubeadm reset -f
-      when: node_status.stdout != "Ready" or node_status.stdout is undefined
+      when: ansible_facts['distribution'] == "Ubuntu" and node_status.rc != 0  # Proceed only if node is not already part of the cluster
 
     - name: Remove old node_joined.txt file
       file:
         path: "{{ ansible_env.HOME }}/node_joined.txt"
         state: absent
-      when: node_status.stdout != "Ready" or node_status.stdout is undefined
+      when: ansible_facts['distribution'] == "Ubuntu" and node_status.rc != 0  # Only remove the file if node is not already part of the cluster
 
-    - name: Join cluster again
+    - name: Join the cluster again
       shell: "{{ hostvars['master.example.com'].join_command }} --ignore-preflight-errors all >> {{ ansible_env.HOME }}/node_joined.txt"
       args:
         chdir: "{{ ansible_env.HOME }}"
-      when: node_status.stdout != "Ready" or node_status.stdout is undefined
+      when: node_status.rc != 0  # Only join if node is not already part of the cluster
