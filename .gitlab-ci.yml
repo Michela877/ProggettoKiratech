@@ -52,9 +52,9 @@ dipendenze:
     # Verifica se gli indirizzi IP sono già presenti in /etc/hosts
     - echo "Verifica se gli indirizzi IP sono già presenti in /etc/hosts"
     - |
-      if ! grep -q "172.31.177.10 controller.example.com controller" /etc/hosts; then
+      if ! grep -q "192.168.178.131 controller.example.com controller" /etc/hosts; then
         echo "Aggiungendo gli indirizzi al file /etc/hosts"
-        sudo sh -c 'echo -e "172.31.177.10 controller.example.com controller\n172.31.177.20 master.example.com master\n172.31.177.30 nodeone.example.com nodeone\n172.31.177.40 nodetwo.example.com nodetwo\n" >> /etc/hosts'
+        sudo sh -c 'echo -e "192.168.178.131 controller.example.com controller\n192.168.178.132 master.example.com master\n192.168.178.133 nodeone.example.com nodeone\n192.168.178.134 nodetwo.example.com nodetwo\n" >> /etc/hosts'
       else
         echo "Gli indirizzi IP sono già presenti in /etc/hosts. Nessuna modifica necessaria."
       fi
@@ -77,9 +77,9 @@ ssh-setup:
 
     # Esporta la variabile SSH_PASS per garantire che venga utilizzata correttamente
     - export SSH_PASS="$SSH_PASS"
-    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@172.31.177.20:/etc/
-    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@172.31.177.30:/etc/
-    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@172.31.177.40:/etc/
+    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@192.168.178.132:/etc/
+    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@192.168.178.133:/etc/
+    - sshpass -p "$SSH_PASS" scp -o StrictHostKeyChecking=no /etc/hosts root@192.168.178.134:/etc/
     
     # Copia la chiave pubblica sui nodi
     - echo "Copiando la chiave SSH su master.example.com"
