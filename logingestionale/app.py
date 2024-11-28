@@ -7,7 +7,6 @@ import os
 import datetime
 import time
 import re
-import random
 
 app = Flask(__name__)
 app.secret_key = 'il_tuo_segreto'
@@ -30,8 +29,6 @@ app.config['MAIL_PASSWORD'] = 'fcwhkmxgpkvnegub'
 app.config['MAIL_DEFAULT_SENDER'] = '90michela90@gmail.com'
 
 mail = Mail(app)
-
-IP_ADDRESSES = ['http://192.168.178.133', 'http://192.168.178.134']
 
 def log_event(message):
     try:
@@ -125,10 +122,7 @@ def verify_otp():
             session.pop('email_temp', None)
             session.pop('role_temp', None)
             log_event(f"Accesso effettuato per l'email: {session['email']}")
-
-            # Alternanza degli IP per il redirect
-            current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-            return redirect(f'{current_ip}/home')
+            return redirect(url_for('home'))
         else:
             msg = 'Codice OTP non valido, riprova.'
             log_event("Codice OTP non valido.")
@@ -162,16 +156,10 @@ def manager():
 @app.route('/dipendente')
 def dipendente():
     if 'loggedin' in session and session.get('role') == 'Dipendente':
-        # Alternanza degli IP per il redirect
-        current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-        return redirect(f'{current_ip}/home')
-    
+        return redirect(url_for('home'))
     flash('Accesso non autorizzato.')
     log_event(f"Accesso non autorizzato per l'email: {session.get('email')}")
-    
-    # Alternanza degli IP per il redirect alla login
-    current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-    return redirect(f'{current_ip}/login')
+    return redirect(url_for('login'))
 
 
 # Registrazione nuovo dipendente
@@ -327,27 +315,17 @@ def log_event(message, level='info'):
 def index():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to home page.')
-        # Alternanza degli IP per il redirect
-        current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-        return redirect(f'{current_ip}/home')
-    
+        return redirect(url_for('home'))
     log_event('User not logged in, rendering login page.')
-    # Alternanza degli IP per il redirect alla login
-    current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-    return redirect(f'{current_ip}/login')
+    return redirect(url_for('login'))
 
 @app.route('/register_redirect')
 def register_redirect():
     if 'loggedin' in session:
         log_event('User is logged in, redirecting to register page.')
-        # Alternanza degli IP per il redirect
-        current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-        return redirect(f'{current_ip}/register')
-    
+        return redirect(url_for('home'))
     log_event('User not logged in, rendering login page.')
-    # Alternanza degli IP per il redirect alla login
-    current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-    return redirect(f'{current_ip}/login')
+    return redirect(url_for('login'))
 
 @app.route('/info')
 def info():
@@ -359,9 +337,7 @@ def info():
         # Controlla se l'email è presente, altrimenti reindirizza alla pagina di login
         if not email:
             flash('Email non fornita.')
-            # Alternanza degli IP per il redirect alla login
-            current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-            return redirect(f'{current_ip}/login')
+            return redirect(url_for('login'))
         
         # Se l'email è solo nella sessione e non nei parametri, reindirizza aggiungendola
         if request.args.get('email') != email:
@@ -376,9 +352,7 @@ def info():
         except mysql.connector.Error as err:
             log_event(f"Database error: {err}")
             flash("Errore durante l'accesso al database.")
-            # Alternanza degli IP per il redirect alla login
-            current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-            return redirect(f'{current_ip}/login')
+            return redirect(url_for('login'))
         finally:
             if cursor:
                 cursor.close()
@@ -390,16 +364,11 @@ def info():
             return render_template('info.html', dipendente=dipendente, email=email)
         else:
             flash('Dipendente non trovato.')
-            # Alternanza degli IP per il redirect alla home
-            current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-            return redirect(f'{current_ip}/home')  # Evita di tornare a "/"
+            return redirect(url_for('home'))  # Evita di tornare a "/"
 
     # Se l'utente non è loggato, reindirizza alla pagina di login
     log_event('User not logged in, rendering login page.')
-    # Alternanza degli IP per il redirect alla login
-    current_ip = IP_ADDRESSES[random.randint(0, 1)]  # Seleziona un IP casuale
-    return redirect(f'{current_ip}/login')
-
+    return redirect(url_for('login'))
 
 
 
