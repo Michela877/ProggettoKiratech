@@ -126,7 +126,7 @@ def verify_otp():
             session.pop('email_temp', None)
             session.pop('role_temp', None)
             log_event(f"Accesso effettuato per l'email: {session['email']}")
-            return redirect(url_for('home'))
+            return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
         else:
             msg = 'Codice OTP non valido, riprova.'
             log_event("Codice OTP non valido.")
