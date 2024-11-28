@@ -48,10 +48,10 @@ Nota: Per automatizzare ulteriormente il processo, è possibile utilizzare un fi
 Nel terzo passo, dovrai attendere che tutte le VM siano avviate. Una volta avviate, configura gli indirizzi IP statici e una password di root per ciascuna VM. Ecco un esempio di configurazione:
 
 Nome	                Indirizzo IP	Gateway	        DNS
-controller.example.com	172.31.177.10	172.31.176.1	172.31.176.1
-master.example.com	172.31.177.20	172.31.176.1	172.31.176.1
-nodeone.example.com	172.31.177.30	172.31.176.1	172.31.176.1
-nodetwo.example.com	172.31.177.40	172.31.176.1	172.31.176.1
+controller.example.com	192.168.178.131	192.168.178.1	192.168.178.1
+master.example.com	192.168.178.132	192.168.178.1	192.168.178.1
+nodeone.example.com	192.168.178.133	192.168.178.1	192.168.178.1
+nodetwo.example.com	192.168.178.134	192.168.178.1	192.168.178.1
 
 Comandi per configurare manualmente su sistema Linux:
 sudo nano /etc/NetworkManager/system-connections/eth1.nmconnection
