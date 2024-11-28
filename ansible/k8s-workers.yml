@@ -27,6 +27,7 @@
       shell: "{{ hostvars['master.example.com'].join_command }} --ignore-preflight-errors all >> {{ ansible_env.HOME }}/node_joined.txt"
       args:
         chdir: "{{ ansible_env.HOME }}"
+      register: join_command_output
       ignore_errors: yes
 
 
