@@ -381,7 +381,7 @@ def info():
         for node_ip in NODE_IPS:
             try:
                 if request.args.get('email') != email:
-                    return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
+                    return redirect(f'http://{node_ip}:{PORT}/info?email=' + session['email'])
             except Exception as e:
                 log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
 
