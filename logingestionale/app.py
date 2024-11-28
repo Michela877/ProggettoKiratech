@@ -117,39 +117,21 @@ def verify_otp():
             msg = 'Codice OTP scaduto. Riprova.'
             log_event("Codice OTP scaduto.")
         elif otp_code == otp:
-            # Rimuovi informazioni temporanee OTP dalla sessione
             session.pop('otp_code', None)
             session.pop('otp_secret', None)
             session.pop('otp_expiry', None)
-
-            # Aggiungi l'utente come loggato
             session['loggedin'] = True
             session['email'] = session['email_temp']
             session['role'] = session['role_temp']
-
-            # Rimuovi variabili temporanee
             session.pop('email_temp', None)
             session.pop('role_temp', None)
-
             log_event(f"Accesso effettuato per l'email: {session['email']}")
-
-            # Dopo la verifica OTP, tentiamo di reindirizzare l'utente al primo nodo disponibile
-            for node_ip in NODE_IPS:
-                try:
-                    return redirect(f'http://{node_ip}:{PORT}/home?email=' + session['email'])
-                except Exception as e:
-                    log_event(f"Error connecting to {node_ip}:{PORT} for email {session['email']}: {str(e)}")
-
-            # Se nessun nodo è raggiungibile, mostra un messaggio di errore
-            flash('Unable to connect to available nodes.')
-            log_event(f"Access failed for email: {session.get('email')}. No reachable nodes.")
-            return redirect(url_for('login'))
+            return redirect(url_for('home'))
         else:
             msg = 'Codice OTP non valido, riprova.'
             log_event("Codice OTP non valido.")
 
     return render_template('verify_otp.html', msg=msg)
-
 
 @app.route('/admin')
 def admin():
@@ -567,12 +549,12 @@ def aggiungi_entrata():
                 orario_inizio_straordinario = None
 
             print(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}")  # Log per debug
-            log_event(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}", 'success')
+            log_event(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}")
 
         except ValueError as e:
             print(f"Errore nel parsing dell'orario: {e}")  # Log per debug
             flash('Orario di entrata non valido.', 'error')
-            log_event(f"Errore nel parsing dell'orario: {e}", 'error')
+            log_event(f"Errore nel parsing dell'orario: {e}")
             return redirect(url_for('home'))
 
         conn = mysql.connector.connect(**db_config)
@@ -610,11 +592,11 @@ def aggiungi_entrata():
 
             conn.commit()
             print("Operazione completata con successo")  # Log per debug
-            log_event("Operazione completata con successo", 'success')
+            log_event("Operazione completata con successo")
 
         except mysql.connector.Error as err:
             print(f"Errore del database: {err}")  # Log per debug
-            log_event(f"Errore del database: {err}", 'error')
+            log_event(f"Errore del database: {err}")
             conn.rollback()
             flash('Si è verificato un errore durante l\'inserimento dei dati.', 'error')
             log_event('Si è verificato un errore durante l\'inserimento dei dati.', 'error')
@@ -625,7 +607,6 @@ def aggiungi_entrata():
 
         return redirect(url_for('home'))
     return redirect(url_for('login'))
-
     
 @app.route('/aggiungi_uscita', methods=['POST'])
 def aggiungi_uscita():
