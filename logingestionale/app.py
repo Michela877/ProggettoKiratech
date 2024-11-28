@@ -559,12 +559,12 @@ def aggiungi_entrata():
                 orario_inizio_straordinario = None
 
             print(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}")  # Log per debug
-            log_event(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}")
+            log_event(f"Orario entrata: {orario1_entrata}, Straordinario: {orario_inizio_straordinario}", 'success')
 
         except ValueError as e:
             print(f"Errore nel parsing dell'orario: {e}")  # Log per debug
             flash('Orario di entrata non valido.', 'error')
-            log_event(f"Errore nel parsing dell'orario: {e}")
+            log_event(f"Errore nel parsing dell'orario: {e}", 'error')
             return redirect(url_for('home'))
 
         conn = mysql.connector.connect(**db_config)
@@ -602,11 +602,11 @@ def aggiungi_entrata():
 
             conn.commit()
             print("Operazione completata con successo")  # Log per debug
-            log_event("Operazione completata con successo")
+            log_event("Operazione completata con successo", 'success')
 
         except mysql.connector.Error as err:
             print(f"Errore del database: {err}")  # Log per debug
-            log_event(f"Errore del database: {err}")
+            log_event(f"Errore del database: {err}", 'error')
             conn.rollback()
             flash('Si è verificato un errore durante l\'inserimento dei dati.', 'error')
             log_event('Si è verificato un errore durante l\'inserimento dei dati.', 'error')
@@ -617,6 +617,7 @@ def aggiungi_entrata():
 
         return redirect(url_for('home'))
     return redirect(url_for('login'))
+
     
 @app.route('/aggiungi_uscita', methods=['POST'])
 def aggiungi_uscita():
