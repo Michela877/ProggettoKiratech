@@ -10,4 +10,4 @@ spec:
     - protocol: TCP
       port: 3306
       targetPort: 3306
-  clusterIP: 10.244.2.6  # MySQL è in esecuzione in un container, quindi lo esponiamo come headless service
+  clusterIP: none  # MySQL è in esecuzione in un container, quindi lo esponiamo come headless service
