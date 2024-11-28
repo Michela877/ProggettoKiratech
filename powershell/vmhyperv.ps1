@@ -81,7 +81,7 @@ foreach ($vm in $VMs) {
     Add-VMHardDiskDrive -VMName $VMName -Path $VHDFile
 
     # Collega una scheda di rete
-    Add-VMNetworkAdapter -VMName $VMName -SwitchName "Default Switch"
+    Add-VMNetworkAdapter -VMName $VMName -SwitchName "WSL"
 
     # Collega l'immagine ISO come dispositivo di avvio
     Add-VMDvdDrive -VMName $VMName -Path $ISOPath
