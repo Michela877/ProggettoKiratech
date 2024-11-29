@@ -1,14 +1,12 @@
 apiVersion: v1
-kind: PersistentVolume
+kind: PersistentVolumeClaim
 metadata:
-  name: mysql-pv
+  name: mysql-pvc   # Il nome del PVC può rimanere 'mysql-pvc'
   namespace: kyratech-prova
 spec:
-  capacity:
-    storage: 1Gi
   accessModes:
     - ReadWriteOnce
-  persistentVolumeReclaimPolicy: Retain
-  storageClassName: standard  # Assicurati che corrisponda alla storage class del PVC
-  hostPath:
-    path: /mnt/data/mysql
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: standard  # Deve essere lo stesso nome della storage class nel PV
