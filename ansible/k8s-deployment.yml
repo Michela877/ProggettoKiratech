@@ -27,6 +27,14 @@
       debug:
         var: git_clone_result
 
+    - name: Deploy Persistent Volume per MySQL
+      command: kubectl apply -f /tmp/automazione/k8s/mysql-pv.yaml -n kyratech-prova
+      register: pv_result
+
+    - name: Mostrare il risultato del PVC
+      debug:
+        var: pv_result
+
     - name: Deploy Persistent Volume Claim per MySQL
       command: kubectl apply -f /tmp/automazione/k8s/mysql-pvc.yaml -n kyratech-prova
       register: pvc_result
