@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: mysql-pv   # Puoi chiamarlo come vuoi, ma qui l'ho chiamato 'mysql-pv'
+  namespace: kyratech-prova
+spec:
+  capacity:
+    storage: 1Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  storageClassName: standard  # La StorageClassName deve corrispondere a quella configurata nel PVC
+  hostPath:
+    path: /mnt/data/mysql  # Percorso sul nodo in cui vengono salvati i dati
+    type: DirectoryOrCreate  # Crea la directory se non esiste
