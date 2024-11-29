@@ -98,7 +98,7 @@ tolerations: []
 affinity: {}
 
 mysql:
-  host: 10.244.2.2   # Nome del servizio MySQL nel cluster Kubernetes
+  host: mysql-service.kyratech-prova.svc.cluster.local   # Nome del servizio MySQL nel cluster Kubernetes
   port: 3306                                    # Porta MySQL
   user: root                              # Nome utente per la connessione al DB
   password: my-secret-pw                          # Password per la connessione al DB
