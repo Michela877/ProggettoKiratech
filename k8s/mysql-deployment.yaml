@@ -26,6 +26,8 @@ spec:
         volumeMounts:
         - name: init-sql
           mountPath: /docker-entrypoint-initdb.d
+        - name: mysql-storage  # Nuovo volume montato in /var/lib/mysql
+          mountPath: /var/lib/mysql  # Percorso dove MySQL memorizza i dati nel container
         resources:
           requests:
             memory: "256Mi"  # Memoria richiesta
@@ -37,3 +39,7 @@ spec:
         - name: init-sql
           configMap:
             name: init-sql  # ConfigMap già creato per l'inizializzazione SQL
+        - name: mysql-storage  # Volume per i dati persistenti
+          persistentVolumeClaim:
+            claimName: mysql-pvc  # Riferimento al PVC che è stato creato
+
