@@ -7,7 +7,7 @@
 Questo repository eseguirà il provisioning di un cluster Kubernetes composto da un nodo manager, un nodo master e due nodi worker per il deployment di un'applicazione.
 
 
-**Nota: ho utilizzato Hyper-v perche essendo gia nei file di sistema di windows la configurazione tramite shell è diretta e piu semplice rispetto ad altri rivali inoltre non ho usato terraform per un semplice fatto che richiedeva il collegamento a file non verificati come hashicorp e per questioni di sicurezza ho utilizzato uno script powershell. inoltre per quanto riguarda il benchmark di security ho selezionato kube bench essendo il piu generico utilizzato per fare i test sulla sicurezza. Per quanto riguarda helm essendo un equivalente della comandlet kubectl per deployare piu facilmente attraverso i pacchetti chars senza usare troppi comandi sono rimasto con la comandlet di kubectl essendo riuscito a fare la stessa identica cosa. per quanto riguarda l'applicativo ho utilizzato un mio applicativo creato da me che utilizza 3 servizi il primo l'applicativo web il secondo il server mysql e il terzo una simulazione di esame sempre tramite web **
+**Nota: ho utilizzato Hyper-v perche essendo gia nei file di sistema di windows la configurazione tramite shell è diretta e piu semplice rispetto ad altri rivali inoltre non ho usato terraform per un semplice fatto che richiedeva il collegamento a file non verificati come hashicorp e per questioni di sicurezza ho utilizzato uno script powershell. inoltre per quanto riguarda il benchmark di security ho selezionato kube bench essendo il piu generico utilizzato per fare i test sulla sicurezza. per quanto riguarda l'applicativo ho utilizzato un mio applicativo creato da me che utilizza 3 servizi il primo l'applicativo web il secondo il server mysql e il terzo una simulazione di esame sempre tramite web **
 
 
 
@@ -34,6 +34,8 @@ Nel secondo passo, utilizzando la cartella di Powershell, verranno create localm
 
 Nota: Per automatizzare ulteriormente il processo, è possibile utilizzare un file ISO modificato (ad esempio con indirizzi IP statici), oppure optare per un provider cloud.
 
+la mia scelta è stata non avendo un file iso modificato di fare la configurazione del sistema operativo iniziale manuale con centos9
+
 
 
 
@@ -43,9 +45,11 @@ Nota: Per automatizzare ulteriormente il processo, è possibile utilizzare un fi
 
 
 
+Nota: questo processo è automatizzato dalla pipeline gitlab serve solo come riferimento.
+
+Nel terzo passo, dovrai attendere che tutte le VM siano avviate complete di sistema operativo. Una volta avviate, configura gli indirizzi IP statici e una password di root per ciascuna VM. Ecco un esempio di configurazione:
 
 
-Nel terzo passo, dovrai attendere che tutte le VM siano avviate. Una volta avviate, configura gli indirizzi IP statici e una password di root per ciascuna VM. Ecco un esempio di configurazione:
 
 Nome	                Indirizzo IP	Gateway	        DNS
 controller.example.com	192.168.178.131	192.168.178.1	192.168.178.1
@@ -98,7 +102,7 @@ Le VM verranno collegate configurando il file /etc/hosts su tutte le macchine pe
 
 Successivamente, si avvierà la fase di Ansible, che installerà tutte le dipendenze necessarie: kubectl, kubelet, kubeadm, docker, containerd.io, flannel, e altre necessarie per configurare e collegare tutti i nodi in un cluster Kubernetes. Inoltre, verrà installato e avviato kube-bench per verificare la sicurezza del cluster, visualizzando i risultati nei log di GitLab. Questo processo si alterna tra vari file di configurazione, come k8s.pkg, kws.master, k8s.workers.
 
-Infine, l'applicazione verrà distribuita tramite Ansible utilizzando il file k8s.deployment, che recupererà le configurazioni dell'applicativo contenute nel repository del GitLab Runner. Creerà un namespace chiamato kyratech-prova e all'interno installerà i pod per l'applicazione Flask e il database MySQL, che saranno gestiti dal cluster Kubernetes.
+Infine, l'applicazione verrà distribuita tramite Ansible utilizzando il file k8s.deployment, che recupererà le configurazioni dell'applicativo contenute nel repository del GitLab Runner. Creerà un namespace chiamato kyratech-prova(yaml Kubernetes) e kiratech-test(usa helm) all'interno installerà i pod per l'applicazione Flask e il database MySQL, che saranno gestiti dal cluster Kubernetes.
 
 
 #variabili
