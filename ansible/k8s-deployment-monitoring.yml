@@ -10,8 +10,8 @@
     - name: Update Helm repositories
       command: helm repo update
 
-    - name: Install Prometheus
-      command: helm install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
+    - name: Install or Upgrade Prometheus
+      command: helm upgrade --install prometheus prometheus-community/prometheus --namespace monitoring --create-namespace
 
     - name: Apply Alertmanager Persistent Volume
       command: kubectl apply -f /tmp/automazione/prometheus/alertmanager-pv.yaml
@@ -24,8 +24,8 @@
       async: 30
       poll: 0
 
-    - name: Install Grafana
-      command: helm install grafana grafana/grafana --namespace monitoring
+    - name: Install or Upgrade Grafana
+      command: helm upgrade --install grafana grafana/grafana --namespace monitoring
 
     - name: Port forward Grafana
       command: kubectl port-forward -n monitoring svc/grafana 3000:80 &
@@ -33,7 +33,7 @@
       poll: 0
 
     - name: Retrieve Grafana admin password
-      command: kubectl get secret -n monitoring grafana -o jsonpath="{.data.admin-password}" | base64 --decode
+      shell: kubectl get secret -n monitoring grafana -o jsonpath='{.data.admin-password}' | base64 --decode
       register: grafana_password
 
     - name: Display Grafana admin password
