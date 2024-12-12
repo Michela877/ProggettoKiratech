@@ -19,18 +19,8 @@
     - name: Apply Prometheus Server Persistent Volume
       command: kubectl apply -f /tmp/automazione/prometheus/prometheus-server-pv.yaml
 
-    - name: Port forward Prometheus Server
-      command: kubectl port-forward -n monitoring svc/prometheus-server 9090:80 &
-      async: 30
-      poll: 0
-
     - name: Install or Upgrade Grafana
       command: helm upgrade --install grafana grafana/grafana --namespace monitoring
-
-    - name: Port forward Grafana
-      command: kubectl port-forward -n monitoring svc/grafana 3000:80 &
-      async: 30
-      poll: 0
 
     - name: Retrieve Grafana admin password
       shell: kubectl get secret -n monitoring grafana -o jsonpath='{.data.admin-password}' | base64 --decode
