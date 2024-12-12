@@ -130,5 +130,6 @@ ansible:
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-master.yml
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-workers.yml
     - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-deployment.yml
+    - ansible-playbook -i $ANSIBLE_INVENTORY $ANSIBLE_PLAYBOOK_PATH/k8s-deployment-monitoring.yml
   tags:
     - centos9
